@@ -17,39 +17,40 @@ contract TerraLedger {
     mapping(uint256 => Property) public properties;
     uint256 public nextPropertyId = 1;
 
-    // NEW CODE STARTS HERE
-    address public owner; // The address of the contract deployer (the authority)
+    address public owner;
 
-    /**
-     * @dev The constructor is a special function that runs only once when the contract is deployed.
-     * It sets the deployer of the contract as the owner.
-     */
     constructor() {
         owner = msg.sender;
     }
 
-    /**
-     * @dev Allows the contract owner to register a new property.
-     * @param _propertyOwner The address of the person who owns the land.
-     * @param _location A string describing the property's location.
-     */
     function registerProperty(address _propertyOwner, string memory _location) external {
-        // Security Check: Ensure only the contract owner can call this function.
         require(msg.sender == owner, "Only the contract owner can register new properties");
-
-        // Step 1: Get the new property's unique ID from our counter.
         uint256 newPropertyId = nextPropertyId;
-
-        // Step 2: Create and store the new Property struct in our mapping.
         properties[newPropertyId] = Property(
             newPropertyId,
             _propertyOwner,
             _location,
             true
         );
-
-        // Step 3: Increment the counter for the next property.
         nextPropertyId++;
+    }
+
+    
+    /**
+     * @dev Allows the current owner of a property to transfer it to a new owner.
+     * @param _propertyId The ID of the property to transfer.
+     * @param _newOwner The address of the new owner.
+     */
+    function transferOwnership(uint256 _propertyId, address _newOwner) external {
+        // Step 1: Create a reference to the property in storage.
+        Property storage property = properties[_propertyId];
+
+        // Step 2: Perform security checks.
+        require(property.isRegistered, "Property does not exist.");
+        require(msg.sender == property.owner, "You are not the owner of this property.");
+
+        // Step 3: Update the owner.
+        property.owner = _newOwner;
     }
     
 }
