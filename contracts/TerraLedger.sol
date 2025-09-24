@@ -9,10 +9,18 @@ contract TerraLedger {
 
     // A structure to hold all the essential details of a property.
     struct Property {
-        uint256 propertyId;      // Unique ID for the property
-        address owner;           // The Ethereum address of the current owner
-        string location;         // A string describing the property's location (e.g., "123 Main St, Anytown")
-        bool isRegistered;       // A flag to confirm that this property officially exists in the registry
+        uint256 propertyId;
+        address owner;
+        string location;
+        bool isRegistered;
     }
+
+    // NEW CODE STARTS HERE
+    // A mapping to store all properties using their unique ID. This acts as our on-chain database.
+    mapping(uint256 => Property) public properties;
+
+    // A counter to ensure each new property gets a unique ID.
+    uint256 public nextPropertyId = 1;
+    // NEW CODE ENDS HERE
 
 }
