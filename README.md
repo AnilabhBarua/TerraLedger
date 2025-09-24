@@ -1,57 +1,105 @@
-# Sample Hardhat 3 Beta Project (`mocha` and `ethers`)
+# TerraLedger: A Blockchain-Based Land Registry
 
-This project showcases a Hardhat 3 Beta project using `mocha` for tests and the `ethers` library for Ethereum interactions.
+This project is a decentralized application (DApp) that creates a transparent and tamper-proof system for recording and transferring land ownership. It leverages the power of the Ethereum blockchain to overcome the challenges of traditional, paper-based land registry systems.
 
-To learn more about the Hardhat 3 Beta, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3 Beta](https://hardhat.org/hardhat3-beta-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+This project is built using the **Hardhat 3** development environment, with **Mocha** for testing and **Ethers.js** for blockchain interactions.
 
-## Project Overview
+## Project Overview 🔎
 
-This example project includes:
+The goal of TerraLedger is to provide a secure and immutable ledger for land titles. By representing each land parcel as a unique token on the blockchain, we can ensure that ownership records are auditable, cannot be fraudulently altered, and can be transferred securely between parties.
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using `mocha` and ethers.js
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+### Technology Stack
 
-## Usage
+  * **Smart Contracts:** Solidity
+  * **Development Environment:** Hardhat
+  * **Frontend:** React
+  * **Blockchain Interaction:** Ethers.js
+  * **Testing:** Mocha & Chai
+
+-----
+
+## Getting Started 🚀
+
+### Prerequisites
+
+  * [Node.js](https://nodejs.org/) (v18 or later)
+  * [MetaMask](https://metamask.io/) browser extension
+
+### Installation and Setup
+
+1.  **Clone the repository:**
+
+    ```shell
+    git clone https://github.com/your-username/TerraLedger.git
+    cd TerraLedger
+    ```
+
+2.  **Install backend dependencies:**
+
+    ```shell
+    npm install
+    ```
+
+3.  **Install frontend dependencies:**
+
+    ```shell
+    cd client
+    npm install
+    ```
+
+-----
+
+## Usage 🛠️
 
 ### Running Tests
 
-To run all the tests in the project, execute the following command:
+To ensure the smart contract is working correctly, run the automated tests:
 
 ```shell
 npx hardhat test
 ```
 
-You can also selectively run the Solidity or `mocha` tests:
+### Running a Local Development Node
+
+For development, you can run a local blockchain node on your machine. This allows you to deploy and test your contract without spending real money.
 
 ```shell
-npx hardhat test solidity
-npx hardhat test mocha
+npx hardhat node
 ```
 
-### Make a deployment to Sepolia
+Keep this terminal running. It will provide you with several test accounts, each funded with 10000 ETH for development purposes.
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
+### Deploying to the Local Node
 
-To run the deployment to a local chain:
+In a **new terminal**, deploy the `TerraLedger` contract to your local Hardhat node:
 
 ```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
+npx hardhat ignition deploy ignition/modules/TerraLedgerModule.ts --network localhost
 ```
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
+*Note: We will create the `TerraLedgerModule.ts` file in a later step.*
 
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
+### Running the Frontend
 
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
+To start the user interface, navigate to the `client` directory and run the development server:
 
 ```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
+cd client
+npm run dev
 ```
 
-After setting the variable, you can run the deployment with the Sepolia network:
+Open your browser to `http://localhost:5173` (or the address provided in the terminal) to interact with the application.
 
-```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
-```
+### Deploying to a Public Testnet (Sepolia)
+
+1.  **Set your private key:** To deploy to a live network, you need an account with funds. Set your Sepolia testnet account's private key as an environment variable. You can do this by creating a `.env` file in the project root:
+
+    ```
+    SEPOLIA_PRIVATE_KEY="YOUR_SEPOLIA_PRIVATE_KEY"
+    ```
+
+2.  **Deploy the contract:**
+
+    ```shell
+    npx hardhat ignition deploy ignition/modules/TerraLedgerModule.ts --network sepolia
+    ```
