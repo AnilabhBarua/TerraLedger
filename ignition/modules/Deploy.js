@@ -1,9 +1,10 @@
-const { buildModule } = require("@nomicfoundation/hardhat-ignition/modules");
+import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-module.exports = buildModule("TerraLedgerModule", (m) => {
-  // This is the line that deploys our 'TerraLedger' contract.
+// We changed 'module.exports =' to 'export default'
+export default buildModule("TerraLedgerModule", (m) => {
+  // This line is the same
   const terraLedger = m.contract("TerraLedger");
 
-  // We return the deployed contract instance.
+  // We return the deployed contract instance
   return { terraLedger };
 });
