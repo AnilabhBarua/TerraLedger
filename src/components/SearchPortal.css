@@ -1,0 +1,117 @@
+.search-portal {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.portal-header {
+  margin-bottom: 32px;
+}
+
+.portal-header h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #e4e6eb;
+  margin-bottom: 8px;
+}
+
+.portal-header p {
+  font-size: 16px;
+  color: #9ca3af;
+}
+
+.search-card {
+  background: linear-gradient(135deg, #1a1f35 0%, #0f1421 100%);
+  border-radius: 20px;
+  padding: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  margin-bottom: 32px;
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.search-input-group {
+  display: flex;
+  gap: 12px;
+}
+
+.search-input-group input {
+  flex: 1;
+  padding: 16px 20px;
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  color: #e4e6eb;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.search-input-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-input-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.search-input-group input::placeholder {
+  color: #6b7280;
+}
+
+.search-btn {
+  padding: 16px 40px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  white-space: nowrap;
+}
+
+.search-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.search-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error-message {
+  padding: 14px 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .search-card {
+    padding: 24px;
+  }
+
+  .search-input-group {
+    flex-direction: column;
+  }
+
+  .portal-header h2 {
+    font-size: 24px;
+  }
+}
