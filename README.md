@@ -1,105 +1,53 @@
-# TerraLedger: A Blockchain-Based Land Registry
+TerraLedger: A Blockchain-Based Land Registry
 
-This project is a decentralized application (DApp) that creates a transparent and tamper-proof system for recording and transferring land ownership. It leverages the power of the Ethereum blockchain to overcome the challenges of traditional, paper-based land registry systems.
+Project Overview
 
-This project is built using the **Hardhat 3** development environment, with **Mocha** for testing and **Ethers.js** for blockchain interactions.
+TerraLedger is a decentralized application (DApp) designed to address the critical vulnerabilities and inefficiencies of traditional, centralized land registry systems. By leveraging the Ethereum blockchain, this project provides a transparent, secure, and immutable ledger for land ownership and transfer.
 
-## Project Overview 🔎
+The core of the project is a smart contract built with Solidity that acts as a digital deed registry. This contract ensures that all transactions are final, auditable, and protected from fraud, fundamentally changing how land titles are managed.
 
-The goal of TerraLedger is to provide a secure and immutable ledger for land titles. By representing each land parcel as a unique token on the blockchain, we can ensure that ownership records are auditable, cannot be fraudulently altered, and can be transferred securely between parties.
+The Problem
 
-### Technology Stack
+Traditional land registries are often paper-based or stored in siloed digital databases. This centralized approach is susceptible to:
 
-  * **Smart Contracts:** Solidity
-  * **Development Environment:** Hardhat
-  * **Frontend:** React
-  * **Blockchain Interaction:** Ethers.js
-  * **Testing:** Mocha & Chai
+Fraud: Records can be illicitly altered, forged, or duplicated.
 
------
+Inefficiency: Transfers of ownership are often slow, costly, and require numerous intermediaries.
 
-## Getting Started 🚀
+Lack of Transparency: It can be difficult for the public to verify ownership history, leading to disputes and a lack of trust.
 
-### Prerequisites
+Data Loss: Centralized systems are at risk of data loss due to disaster, mismanagement, or targeted attacks.
 
-  * [Node.js](https://nodejs.org/) (v18 or later)
-  * [MetaMask](https://metamask.io/) browser extension
+The Solution: TerraLedger
 
-### Installation and Setup
+TerraLedger solves these problems by moving the entire registry onto the blockchain, providing a single source of truth for all land titles.
 
-1.  **Clone the repository:**
+Immutability: Once a property is registered or a transfer is completed, it is recorded on the blockchain forever. It cannot be altered or deleted, eliminating the possibility of fraud.
 
-    ```shell
-    git clone https://github.com/your-username/TerraLedger.git
-    cd TerraLedger
-    ```
+Security: The system is secured by cryptographic principles. All ownership transfers must be digitally signed by the rightful owner, making unauthorized transactions impossible.
 
-2.  **Install backend dependencies:**
+Transparency: Anyone can view the history and current ownership of a property (while maintaining the privacy of real-world identities), making the entire system auditable and trustworthy.
 
-    ```shell
-    npm install
-    ```
+Efficiency: By using a smart contract, the rules for property transfer are automated, reducing the need for intermediaries and speeding up the transaction process.
 
-3.  **Install frontend dependencies:**
+Core Smart Contract Features
 
-    ```shell
-    cd client
-    npm install
-    ```
+The TerraLedger.sol smart contract is the heart of the application and enforces all the rules of the registry.
 
------
+1. Administrative Control
 
-## Usage 🛠️
+A single, authorized "owner" (representing a government or administrative body) is designated when the contract is first deployed. This administrative account is the only one with the power to add new, officially recognized properties to the ledger.
 
-### Running Tests
+2. Secure Property Registration
 
-To ensure the smart contract is working correctly, run the automated tests:
+The registerProperty function allows the administrative owner to mint a new land title. It records the property's unique ID, its location, and the Ethereum address of its first rightful owner.
 
-```shell
-npx hardhat test
-```
+3. Secure Ownership Transfer
 
-### Running a Local Development Node
+The transferOwnership function allows a property owner to securely transfer their title to a new owner. The smart contract automatically enforces two critical security checks:
 
-For development, you can run a local blockchain node on your machine. This allows you to deploy and test your contract without spending real money.
+It verifies that the property being transferred actually exists.
 
-```shell
-npx hardhat node
-```
+It cryptographically confirms that the person initiating the transfer is the current, legitimate owner of that specific property.
 
-Keep this terminal running. It will provide you with several test accounts, each funded with 10000 ETH for development purposes.
-
-### Deploying to the Local Node
-
-In a **new terminal**, deploy the `TerraLedger` contract to your local Hardhat node:
-
-```shell
-npx hardhat ignition deploy ignition/modules/TerraLedgerModule.ts --network localhost
-```
-
-*Note: We will create the `TerraLedgerModule.ts` file in a later step.*
-
-### Running the Frontend
-
-To start the user interface, navigate to the `client` directory and run the development server:
-
-```shell
-cd client
-npm run dev
-```
-
-Open your browser to `http://localhost:5173` (or the address provided in the terminal) to interact with the application.
-
-### Deploying to a Public Testnet (Sepolia)
-
-1.  **Set your private key:** To deploy to a live network, you need an account with funds. Set your Sepolia testnet account's private key as an environment variable. You can do this by creating a `.env` file in the project root:
-
-    ```
-    SEPOLIA_PRIVATE_KEY="YOUR_SEPOLIA_PRIVATE_KEY"
-    ```
-
-2.  **Deploy the contract:**
-
-    ```shell
-    npx hardhat ignition deploy ignition/modules/TerraLedgerModule.ts --network sepolia
-    ```
+If either of these checks fails, the transaction is automatically rejected, ensuring that only a rightful owner can ever transfer their property.
