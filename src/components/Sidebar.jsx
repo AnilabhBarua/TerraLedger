@@ -1,45 +1,40 @@
-import React from 'react';
-import './Sidebar.css';
+// src/components/Sidebar.jsx
+import React from "react";
+import "./Sidebar.css";
 
-function Sidebar({ isAdmin, currentView, setCurrentView, account }) {
+export default function Sidebar({
+  isAdmin,
+  currentView,
+  setCurrentView,
+  account
+}) {
   return (
-    <div className="sidebar">
-      <div className="sidebar-header">
-        <div className="logo">
-          <span className="logo-icon">🌍</span>
-          <span className="logo-text">TerraLedger</span>
-        </div>
-      </div>
+    <aside className="sidebar">
+      <h2>🌍 TerraLedger</h2>
 
-      <nav className="sidebar-nav">
+      <button
+        className={currentView === "search" ? "active" : ""}
+        onClick={() => setCurrentView("search")}
+      >
+        Property Search
+      </button>
+
+      {isAdmin === true && (
         <button
-          className={`nav-item ${currentView === 'search' ? 'active' : ''}`}
-          onClick={() => setCurrentView('search')}
-          disabled={!account}
+          className={currentView === "admin" ? "active" : ""}
+          onClick={() => setCurrentView("admin")}
         >
-          <span className="nav-icon">🔍</span>
-          <span className="nav-text">Public Search</span>
+          Admin Panel
         </button>
+      )}
 
-        {isAdmin && (
-          <button
-            className={`nav-item ${currentView === 'admin' ? 'active' : ''}`}
-            onClick={() => setCurrentView('admin')}
-          >
-            <span className="nav-icon">⚙️</span>
-            <span className="nav-text">Admin Panel</span>
-          </button>
-        )}
-      </nav>
-
-      <div className="sidebar-footer">
-        <div className="footer-content">
-          <p className="footer-title">Blockchain Registry</p>
-          <p className="footer-subtitle">Secure & Transparent</p>
-        </div>
-      </div>
-    </div>
+      <footer>
+        <small>
+          {account
+            ? `${account.slice(0, 6)}...${account.slice(-4)}`
+            : "No wallet"}
+        </small>
+      </footer>
+    </aside>
   );
 }
-
-export default Sidebar;
