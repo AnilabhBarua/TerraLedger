@@ -11,7 +11,8 @@ function App() {
   const [view, setView] = useState("search");
 
   return (
-    <div className="app-root">
+    <div className="app-container">
+      {/* Sidebar */}
       <Sidebar
         isAdmin={isAdmin}
         currentView={view}
@@ -19,23 +20,37 @@ function App() {
         account={account}
       />
 
-      <main className="main-content">
-        <header className="app-header">
-          <p>{account ? `Connected: ${account}` : "Not connected"}</p>
-          {isAdmin === null && <small>Checking admin...</small>}
-          {isAdmin === true && <small>Admin detected</small>}
-          {isAdmin === false && <small>Standard user</small>}
+      {/* Main Area */}
+      <div className="content-container">
+        <header className="top-bar">
+          <div>
+            <strong>
+              {account
+                ? `Connected: ${account.slice(0, 6)}...${account.slice(-4)}`
+                : "No wallet"}
+            </strong>
+            <p>
+              {isAdmin === null
+                ? "Checking admin..."
+                : isAdmin
+                ? "Admin user"
+                : "Standard user"}
+            </p>
+          </div>
+
           <button onClick={refresh}>Refresh</button>
         </header>
 
-        {view === "search" && (
-          <SearchPortal contract={contract} account={account} />
-        )}
+        <main className="page-content">
+          {view === "search" && (
+            <SearchPortal contract={contract} account={account} />
+          )}
 
-        {view === "admin" && isAdmin && (
-          <AdminPanel contract={contract} account={account} />
-        )}
-      </main>
+          {view === "admin" && isAdmin && (
+            <AdminPanel contract={contract} account={account} />
+          )}
+        </main>
+      </div>
     </div>
   );
 }

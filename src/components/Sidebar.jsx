@@ -19,7 +19,7 @@ export default function Sidebar({
         Property Search
       </button>
 
-      {isAdmin === true && (
+      {isAdmin && (
         <button
           className={currentView === "admin" ? "active" : ""}
           onClick={() => setCurrentView("admin")}
@@ -28,13 +28,11 @@ export default function Sidebar({
         </button>
       )}
 
-      <footer>
-        <small>
-          {account
-            ? `${account.slice(0, 6)}...${account.slice(-4)}`
-            : "No wallet"}
-        </small>
-      </footer>
+      <div style={{ marginTop: "auto", fontSize: "12px", opacity: 0.8 }}>
+        {account
+          ? `${account.slice(0, 6)}...${account.slice(-4)}`
+          : "Not connected"}
+      </div>
     </aside>
   );
 }
