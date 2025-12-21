@@ -1,5 +1,4 @@
 .search-portal {
-  width: 100%;
   max-width: 900px;
   margin: 0 auto;
 }
@@ -24,7 +23,7 @@
   background: linear-gradient(135deg, #1a1f35 0%, #0f1421 100%);
   border-radius: 20px;
   padding: 32px;
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   margin-bottom: 32px;
 }

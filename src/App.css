@@ -1,85 +1,239 @@
 .app-container {
   display: flex;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 100%);
-  color: #e4e6eb;
-  overflow: hidden;
+  height: 100vh;
+  background: #0b0f1a;
+  color: white;
+}
+
+.sidebar {
+  width: 260px;
+  background: linear-gradient(180deg, #0f172a, #020617);
+  padding: 20px;
 }
 
 .content-container {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .top-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 32px;
-  background: rgba(15, 23, 42, 0.6);
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.8);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.1);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-.top-bar > div {
+.wallet-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
-.top-bar strong {
+.account-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.account-label {
+  font-size: 12px;
+  color: #10b981;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.account-address {
   font-size: 15px;
   font-weight: 600;
   color: #e4e6eb;
   font-family: 'Courier New', monospace;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-.top-bar p {
+.account-role {
   font-size: 13px;
   color: #9ca3af;
-  margin: 0;
+  font-weight: 500;
 }
 
-.top-bar button {
-  padding: 10px 24px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
+.no-wallet {
+  font-size: 14px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.wallet-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-connect,
+.btn-disconnect {
+  padding: 12px 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
-.top-bar button:hover {
+.btn-connect {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-connect:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-connect:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-disconnect {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-disconnect:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
 }
 
 .page-content {
   flex: 1;
-  padding: 40px;
-  overflow-y: auto;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
+  padding: 24px;
+}
+
+.connect-prompt {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.connect-card {
+  background: linear-gradient(135deg, #1a1f35 0%, #0f1421 100%);
+  border-radius: 24px;
+  padding: 60px 80px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  max-width: 500px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.connect-card h2 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #e4e6eb;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.connect-card p {
+  font-size: 16px;
+  color: #9ca3af;
+  margin-bottom: 32px;
+}
+
+.btn-connect-large {
+  padding: 18px 48px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+}
+
+.btn-connect-large:hover:not(:disabled) {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.5);
+}
+
+.btn-connect-large:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.access-denied {
+  background: linear-gradient(135deg, #1a1f35 0%, #0f1421 100%);
+  border-radius: 20px;
+  padding: 48px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  max-width: 600px;
+}
+
+.access-denied h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ef4444;
+  margin-bottom: 16px;
+}
+
+.access-denied p {
+  font-size: 16px;
+  color: #9ca3af;
+  margin-bottom: 12px;
+  line-height: 150%;
+}
+
+.access-denied .admin-hint {
+  font-size: 14px;
+  color: #6b7280;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {
-  .app-container {
-    flex-direction: column;
-  }
-
   .top-bar {
-    padding: 16px 20px;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
   }
 
-  .page-content {
-    padding: 20px;
+  .connect-card {
+    padding: 40px 32px;
+  }
+
+  .connect-card h2 {
+    font-size: 28px;
   }
 }
