@@ -6,10 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
-    "blockchain": "hardhat node",
-    "seed": "hardhat run scripts/seed-properties.ts --network localhost",
-    "test": "hardhat test"
+    "preview": "vite preview"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +20,7 @@
     "ethers": "^6.15.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-router-dom": "^7.11.0",
     "vite": "^7.1.12"
   }
 }
