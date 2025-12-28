@@ -14,10 +14,19 @@ import * as Contracts from ".";
 declare module "hardhat/types/runtime" {
   interface HardhatEthersHelpers extends HardhatEthersHelpersBase {
     getContractFactory(
+      name: "CounterTest",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CounterTest__factory>;
+    getContractFactory(
       name: "TerraLedger",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TerraLedger__factory>;
 
+    getContractAt(
+      name: "CounterTest",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CounterTest>;
     getContractAt(
       name: "TerraLedger",
       address: string | ethers.Addressable,
@@ -25,10 +34,19 @@ declare module "hardhat/types/runtime" {
     ): Promise<Contracts.TerraLedger>;
 
     deployContract(
+      name: "CounterTest",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.CounterTest>;
+    deployContract(
       name: "TerraLedger",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.TerraLedger>;
 
+    deployContract(
+      name: "CounterTest",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.CounterTest>;
     deployContract(
       name: "TerraLedger",
       args: any[],

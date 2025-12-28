@@ -6,6 +6,7 @@ pragma solidity ^0.8.20;
  * @dev A smart contract for a decentralized land registry.
  */
 contract TerraLedger {
+
     struct Property {
         uint256 propertyId;
         address owner;

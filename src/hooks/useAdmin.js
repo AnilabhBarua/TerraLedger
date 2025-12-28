@@ -1,102 +1,57 @@
+// src/hooks/useAdmin.js
 import { useEffect, useState, useCallback } from "react";
-import { ethers, BrowserProvider } from "ethers";
+import { ethers } from "ethers";
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../contractConfig";
 
 export default function useAdmin() {
   const [account, setAccount] = useState(null);
   const [isAdmin, setIsAdmin] = useState(null);
   const [contract, setContract] = useState(null);
-  const [isConnecting, setIsConnecting] = useState(false);
 
-  const connectWallet = useCallback(async () => {
+  const checkAdmin = useCallback(async () => {
     if (!window.ethereum) {
-      alert("Please install MetaMask to use this application!");
+      setIsAdmin(false);
       return;
     }
 
     try {
-      setIsConnecting(true);
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts"
-      });
+      await window.ethereum.request({ method: "eth_requestAccounts" });
 
-      if (accounts.length === 0) {
-        setIsConnecting(false);
-        return;
-      }
-
-      const provider = new BrowserProvider(window.ethereum);
+      const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const userAddress = await signer.getAddress();
 
       setAccount(userAddress);
 
-      const contractWithSigner = new ethers.Contract(
+      const contractInstance = new ethers.Contract(
         CONTRACT_ADDRESS,
         CONTRACT_ABI,
         signer
       );
-      setContract(contractWithSigner);
+      setContract(contractInstance);
 
-      const owner = await contractWithSigner.owner();
+      const owner = await contractInstance.owner();
 
       setIsAdmin(
         userAddress.toLowerCase() === owner.toLowerCase()
       );
     } catch (err) {
-      console.error("Wallet connection failed:", err);
-      alert("Failed to connect wallet: " + err.message);
-    } finally {
-      setIsConnecting(false);
+      console.error("Admin check failed:", err);
+      setIsAdmin(false);
     }
-  }, []);
-
-  const disconnectWallet = useCallback(() => {
-    setAccount(null);
-    setIsAdmin(null);
-    setContract(null);
-  }, []);
-
-  const handleAccountsChanged = useCallback((accounts) => {
-    if (accounts.length === 0) {
-      disconnectWallet();
-    } else {
-      connectWallet();
-    }
-  }, [connectWallet, disconnectWallet]);
-
-  const handleChainChanged = useCallback(() => {
-    window.location.reload();
   }, []);
 
   useEffect(() => {
-    if (window.ethereum) {
-      window.ethereum.on("accountsChanged", handleAccountsChanged);
-      window.ethereum.on("chainChanged", handleChainChanged);
+    checkAdmin();
 
-      window.ethereum.request({ method: "eth_accounts" })
-        .then((accounts) => {
-          if (accounts.length > 0) {
-            connectWallet();
-          }
-        })
-        .catch(console.error);
-    }
+    window.ethereum?.on("accountsChanged", checkAdmin);
+    window.ethereum?.on("chainChanged", checkAdmin);
 
     return () => {
-      if (window.ethereum) {
-        window.ethereum.removeListener("accountsChanged", handleAccountsChanged);
-        window.ethereum.removeListener("chainChanged", handleChainChanged);
-      }
+      window.ethereum?.removeListener("accountsChanged", checkAdmin);
+      window.ethereum?.removeListener("chainChanged", checkAdmin);
     };
-  }, [connectWallet, handleAccountsChanged, handleChainChanged]);
+  }, [checkAdmin]);
 
-  return {
-    account,
-    isAdmin,
-    contract,
-    connectWallet,
-    disconnectWallet,
-    isConnecting
-  };
+  return { account, isAdmin, contract, refresh: checkAdmin };
 }

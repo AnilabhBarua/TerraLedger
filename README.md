@@ -1,6 +1,25 @@
-TerraLedger: A Blockchain-Based Land Registry
+# TerraLedger: A Blockchain-Based Land Registry
 
-Project Overview
+## Quick Start
+
+New to TerraLedger? Get started in 3 commands:
+
+```bash
+npm install
+npm run blockchain    # Terminal 1: Start local blockchain
+npm run seed         # Terminal 2: Deploy contract & seed test data
+npm run dev          # Terminal 3: Start React app
+```
+
+Then open **[DEMO_SETUP.md](./DEMO_SETUP.md)** for complete setup instructions.
+
+## For Developers
+
+Detailed development guide: **[DEVELOPMENT.md](./DEVELOPMENT.md)**
+
+---
+
+## Project Overview
 
 TerraLedger is a decentralized application (DApp) designed to address the critical vulnerabilities and inefficiencies of traditional, centralized land registry systems. By leveraging the Ethereum blockchain, this project provides a transparent, secure, and immutable ledger for land ownership and transfer.
 

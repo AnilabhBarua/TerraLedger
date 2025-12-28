@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "blockchain": "hardhat node",
+    "seed": "hardhat run scripts/seed-properties.ts --network localhost",
+    "test": "hardhat test"
   },
   "keywords": [],
   "author": "",
