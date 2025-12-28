@@ -1,20 +1,48 @@
-import React, { useState } from 'react';
-import { mockUser } from '../mockData';
+import React, { useState, useEffect } from 'react';
+import { getCurrentUser } from '../mockData';
 import './WalletAuth.css';
 
 function WalletAuth() {
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+
+  useEffect(() => {
+    const persisted = localStorage.getItem('wallet_connected') === 'true';
+    const storedAddr = localStorage.getItem('wallet_user_address');
+    const actualUser = getCurrentUser();
+    setCurrentUser(actualUser);
+
+    if (persisted && storedAddr && storedAddr.toLowerCase() === actualUser.address.toLowerCase()) {
+      setConnected(true);
+    } else {
+      setConnected(false);
+      localStorage.removeItem('wallet_connected');
+      localStorage.removeItem('wallet_user_address');
+    }
+  }, []);
 
   const handleConnect = async () => {
     setConnecting(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
     setConnected(true);
     setConnecting(false);
+    const user = getCurrentUser();
+    setCurrentUser(user);
+    try {
+      localStorage.setItem('wallet_connected', 'true');
+      localStorage.setItem('wallet_user_address', user.address);
+    } catch (e) {
+      // ignore localStorage errors in environments where it's not available
+    }
   };
 
   const handleDisconnect = () => {
     setConnected(false);
+    try {
+      localStorage.removeItem('wallet_connected');
+      localStorage.removeItem('wallet_user_address');
+    } catch (e) {}
   };
 
   return (
@@ -107,26 +135,26 @@ function WalletAuth() {
             <div className="user-profile">
               <div className="profile-header">
                 <div className="avatar">
-                  {mockUser.name.charAt(0)}
+                  {currentUser.name.charAt(0)}
                 </div>
                 <div className="profile-info">
-                  <h2>{mockUser.name}</h2>
-                  <p className="address">{mockUser.address}</p>
+                  <h2>{currentUser.name}</h2>
+                  <p className="address">{currentUser.address}</p>
                 </div>
               </div>
 
               <div className="profile-details">
                 <div className="detail-card">
                   <div className="detail-label">Account Balance</div>
-                  <div className="detail-value">{mockUser.balance}</div>
+                  <div className="detail-value">{currentUser.balance}</div>
                 </div>
                 <div className="detail-card">
                   <div className="detail-label">Network</div>
-                  <div className="detail-value">{mockUser.network}</div>
+                  <div className="detail-value">{currentUser.network}</div>
                 </div>
                 <div className="detail-card">
                   <div className="detail-label">Account Type</div>
-                  <div className="detail-value">{mockUser.isAdmin ? 'Admin' : 'Standard'}</div>
+                  <div className="detail-value">{currentUser.isAdmin ? 'Admin' : 'Standard'}</div>
                 </div>
                 <div className="detail-card">
                   <div className="detail-label">Status</div>
