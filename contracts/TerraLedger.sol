@@ -11,6 +11,8 @@ contract TerraLedger {
         uint256 propertyId;
         address owner;
         string location;
+        string area;
+        string propertyType;
         bool isRegistered;
     }
 
@@ -23,13 +25,20 @@ contract TerraLedger {
         owner = msg.sender;
     }
 
-    function registerProperty(address _propertyOwner, string memory _location) external {
+    function registerProperty(
+        address _propertyOwner, 
+        string memory _location, 
+        string memory _area, 
+        string memory _propertyType
+    ) external {
         require(msg.sender == owner, "Only the contract owner can register new properties");
         uint256 newPropertyId = nextPropertyId;
         properties[newPropertyId] = Property(
             newPropertyId,
             _propertyOwner,
             _location,
+            _area,
+            _propertyType,
             true
         );
         nextPropertyId++;

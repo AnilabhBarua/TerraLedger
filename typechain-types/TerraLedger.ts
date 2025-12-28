@@ -42,7 +42,7 @@ export interface TerraLedgerInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "registerProperty",
-    values: [AddressLike, string]
+    values: [AddressLike, string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "transferOwnership",
@@ -115,10 +115,12 @@ export interface TerraLedger extends BaseContract {
   properties: TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, string, string, boolean] & {
+      [bigint, string, string, string, string, boolean] & {
         propertyId: bigint;
         owner: string;
         location: string;
+        area: string;
+        propertyType: string;
         isRegistered: boolean;
       }
     ],
@@ -126,7 +128,12 @@ export interface TerraLedger extends BaseContract {
   >;
 
   registerProperty: TypedContractMethod<
-    [_propertyOwner: AddressLike, _location: string],
+    [
+      _propertyOwner: AddressLike,
+      _location: string,
+      _area: string,
+      _propertyType: string
+    ],
     [void],
     "nonpayable"
   >;
@@ -152,10 +159,12 @@ export interface TerraLedger extends BaseContract {
   ): TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, string, string, boolean] & {
+      [bigint, string, string, string, string, boolean] & {
         propertyId: bigint;
         owner: string;
         location: string;
+        area: string;
+        propertyType: string;
         isRegistered: boolean;
       }
     ],
@@ -164,7 +173,12 @@ export interface TerraLedger extends BaseContract {
   getFunction(
     nameOrSignature: "registerProperty"
   ): TypedContractMethod<
-    [_propertyOwner: AddressLike, _location: string],
+    [
+      _propertyOwner: AddressLike,
+      _location: string,
+      _area: string,
+      _propertyType: string
+    ],
     [void],
     "nonpayable"
   >;
