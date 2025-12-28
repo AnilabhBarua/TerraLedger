@@ -357,6 +357,130 @@
   }
 }
 
+/* Error States */
+.input-error {
+  border-color: #f5576c !important;
+  background: rgba(245, 87, 108, 0.1) !important;
+}
+
+.input-error:focus {
+  border-color: #f5576c !important;
+  box-shadow: 0 0 0 4px rgba(245, 87, 108, 0.2) !important;
+}
+
+.error-message {
+  color: #f5576c;
+  font-size: 13px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.error-message::before {
+  content: '⚠️';
+  font-size: 12px;
+}
+
+/* Admin Badge */
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  margin-top: 16px;
+}
+
+.badge-icon {
+  font-size: 14px;
+}
+
+/* Field Hints */
+.field-hint {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: #6b7280;
+  text-transform: none;
+  letter-spacing: normal;
+  margin-top: 2px;
+}
+
+.required {
+  color: #f5576c;
+}
+
+/* Access Denied */
+.access-denied {
+  background: linear-gradient(135deg, #1a1f35 0%, #0f1421 100%);
+  border: 2px solid #f5576c;
+  border-radius: 24px;
+  padding: 60px 48px;
+  text-align: center;
+  animation: fadeInUp 0.6s ease;
+}
+
+.denied-icon {
+  font-size: 72px;
+  margin-bottom: 20px;
+}
+
+.access-denied h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #f5576c;
+  margin-bottom: 12px;
+}
+
+.access-denied > p {
+  font-size: 16px;
+  color: #9ca3af;
+  margin-bottom: 24px;
+}
+
+.admin-info {
+  background: rgba(245, 87, 108, 0.05);
+  border: 1px solid rgba(245, 87, 108, 0.2);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.admin-info p {
+  color: #9ca3af;
+  font-size: 13px;
+  margin: 0;
+}
+
+.admin-info code {
+  display: block;
+  font-family: 'Courier New', monospace;
+  color: #e4e6eb;
+  font-size: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 8px;
+  word-break: break-all;
+}
+
+.access-denied .hint {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.access-denied .hint code {
+  background: rgba(102, 126, 234, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
 @media (max-width: 768px) {
   .register-form {
     padding: 32px 24px;
@@ -368,5 +492,9 @@
 
   .register-header h1 {
     font-size: 32px;
+  }
+
+  .access-denied {
+    padding: 40px 24px;
   }
 }

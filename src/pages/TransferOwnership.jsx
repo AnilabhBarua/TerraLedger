@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
-import { mockProperties, generateMockTransaction, generateBlockNumber } from '../mockData';
+import {
+  mockProperties,
+  generateMockTransaction,
+  generateBlockNumber,
+  isValidEthereumAddress,
+  getPropertyById,
+  isPropertyOwner,
+  propertyExists,
+  getCurrentUser,
+  CURRENT_USER
+} from '../mockData';
 import './TransferOwnership.css';
 
 function TransferOwnership() {
@@ -10,17 +20,70 @@ function TransferOwnership() {
   const [property, setProperty] = useState(null);
   const [transactionData, setTransactionData] = useState(null);
   const [step, setStep] = useState(1);
+  const [errors, setErrors] = useState({});
+
+  const currentUser = getCurrentUser();
+
+  // Get properties owned by the current user
+  const userProperties = mockProperties.filter(
+    p => p.owner.toLowerCase() === CURRENT_USER.toLowerCase()
+  );
 
   const handlePropertyLookup = () => {
-    const found = mockProperties.find(p => p.propertyId === parseInt(propertyId));
-    if (found) {
-      setProperty(found);
-      setStep(2);
+    setErrors({});
+
+    const id = parseInt(propertyId);
+
+    // Validate property ID is a number
+    if (isNaN(id) || id <= 0) {
+      setErrors({ propertyId: 'Please enter a valid property ID (positive number).' });
+      return;
     }
+
+    // Check if property exists
+    if (!propertyExists(id)) {
+      setErrors({ propertyId: `Property with ID ${id} does not exist.` });
+      return;
+    }
+
+    // Check if current user owns this property
+    if (!isPropertyOwner(id)) {
+      const prop = getPropertyById(id);
+      setErrors({
+        propertyId: `You are not the owner of this property. This property belongs to ${prop.ownerName} (${prop.owner.slice(0, 6)}...${prop.owner.slice(-4)}).`
+      });
+      return;
+    }
+
+    const found = getPropertyById(id);
+    setProperty(found);
+    setStep(2);
+  };
+
+  const validateTransferForm = () => {
+    const newErrors = {};
+
+    // Validate new owner address
+    if (!newOwner.trim()) {
+      newErrors.newOwner = 'New owner address is required.';
+    } else if (!isValidEthereumAddress(newOwner)) {
+      newErrors.newOwner = 'Invalid Ethereum address. Must start with 0x followed by 40 hex characters.';
+    } else if (newOwner.toLowerCase() === property.owner.toLowerCase()) {
+      newErrors.newOwner = 'Cannot transfer to the same owner. New owner must be different.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleTransfer = async (e) => {
     e.preventDefault();
+    setErrors({});
+
+    if (!validateTransferForm()) {
+      return;
+    }
+
     setLoading(true);
     setStep(3);
 
@@ -50,6 +113,7 @@ function TransferOwnership() {
     setSuccess(false);
     setTransactionData(null);
     setStep(1);
+    setErrors({});
   };
 
   return (
@@ -59,6 +123,10 @@ function TransferOwnership() {
           <div className="header-icon">🔄</div>
           <h1>Ownership Transfer</h1>
           <p>Securely transfer property ownership with blockchain verification</p>
+          <div className="current-user-info">
+            <span className="user-label">Connected as:</span>
+            <code>{currentUser.address.slice(0, 6)}...{currentUser.address.slice(-4)}</code>
+          </div>
         </div>
 
         <div className="steps-indicator">
@@ -81,7 +149,7 @@ function TransferOwnership() {
         {step === 1 && (
           <div className="step-content">
             <h2>Step 1: Select Property</h2>
-            <p>Enter the Property ID you wish to transfer</p>
+            <p>Enter the Property ID you wish to transfer (you must be the owner)</p>
 
             <div className="input-group">
               <input
@@ -90,35 +158,81 @@ function TransferOwnership() {
                 value={propertyId}
                 onChange={(e) => setPropertyId(e.target.value)}
                 min="1"
+                className={errors.propertyId ? 'input-error' : ''}
               />
               <button onClick={handlePropertyLookup} disabled={!propertyId}>
                 Lookup Property
               </button>
             </div>
+            {errors.propertyId && (
+              <div className="error-message-box">
+                <span className="error-icon">⚠️</span>
+                <span>{errors.propertyId}</span>
+              </div>
+            )}
 
             <div className="property-list">
-              <h3>Available Properties</h3>
-              <div className="properties-grid">
-                {mockProperties.map(prop => (
-                  <div
-                    key={prop.propertyId}
-                    className="property-item"
-                    onClick={() => {
-                      setPropertyId(prop.propertyId.toString());
-                      setProperty(prop);
-                      setStep(2);
-                    }}
-                  >
-                    <div className="property-id-badge">ID: {prop.propertyId}</div>
-                    <div className="property-location">{prop.location}</div>
-                    <div className="property-details">
-                      <span>{prop.type}</span>
-                      <span>{prop.area}</span>
+              <h3>Your Properties ({userProperties.length})</h3>
+              {userProperties.length === 0 ? (
+                <div className="no-properties">
+                  <p>You don't own any properties.</p>
+                  <p className="hint">
+                    To test transfers, change <code>CURRENT_USER</code> in <code>mockData.js</code> to an address that owns a property.
+                  </p>
+                </div>
+              ) : (
+                <div className="properties-grid">
+                  {userProperties.map(prop => (
+                    <div
+                      key={prop.propertyId}
+                      className="property-item owned"
+                      onClick={() => {
+                        setPropertyId(prop.propertyId.toString());
+                        setProperty(prop);
+                        setErrors({});
+                        setStep(2);
+                      }}
+                    >
+                      <div className="property-id-badge">ID: {prop.propertyId}</div>
+                      <div className="owned-badge">You Own This</div>
+                      <div className="property-location">{prop.location}</div>
+                      <div className="property-details">
+                        <span>{prop.type}</span>
+                        <span>{prop.area}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
+
+            {userProperties.length > 0 && (
+              <div className="all-properties-section">
+                <h3>All Registered Properties</h3>
+                <div className="properties-grid">
+                  {mockProperties.filter(p => !userProperties.includes(p)).map(prop => (
+                    <div
+                      key={prop.propertyId}
+                      className="property-item not-owned"
+                      onClick={() => {
+                        setPropertyId(prop.propertyId.toString());
+                        setErrors({
+                          propertyId: `You are not the owner of this property. This property belongs to ${prop.ownerName}.`
+                        });
+                      }}
+                    >
+                      <div className="property-id-badge">ID: {prop.propertyId}</div>
+                      <div className="not-owned-badge">Not Your Property</div>
+                      <div className="property-location">{prop.location}</div>
+                      <div className="property-details">
+                        <span>{prop.type}</span>
+                        <span>Owner: {prop.ownerName}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -159,18 +273,24 @@ function TransferOwnership() {
 
             <form onSubmit={handleTransfer} className="transfer-form">
               <div className="form-group">
-                <label>New Owner Address</label>
+                <label>
+                  New Owner Address <span className="required">*</span>
+                  <span className="field-hint">Valid Ethereum address (0x...)</span>
+                </label>
                 <input
                   type="text"
-                  placeholder="0x..."
+                  placeholder="0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
                   value={newOwner}
                   onChange={(e) => setNewOwner(e.target.value)}
-                  required
+                  className={errors.newOwner ? 'input-error' : ''}
                 />
+                {errors.newOwner && (
+                  <span className="error-message">{errors.newOwner}</span>
+                )}
               </div>
 
               <div className="button-group">
-                <button type="button" onClick={() => setStep(1)} className="back-button">
+                <button type="button" onClick={() => { setStep(1); setErrors({}); }} className="back-button">
                   Back
                 </button>
                 <button type="submit" className="submit-button">

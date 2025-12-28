@@ -1,20 +1,61 @@
 import React, { useState } from 'react';
-import { mockProperties } from '../mockData';
+import { mockProperties, isValidEthereumAddress, getPropertyById } from '../mockData';
 import './PropertySearch.css';
 
 function PropertySearch() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('all'); // 'all', 'id', 'address'
   const [searchResults, setSearchResults] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSearch = () => {
-    const results = mockProperties.filter(p =>
-      p.propertyId.toString().includes(searchTerm) ||
-      p.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.owner.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setSearchResults(results);
+    setError('');
+    setHasSearched(true);
     setSelectedProperty(null);
+
+    if (!searchTerm.trim()) {
+      setError('Please enter a search term.');
+      setSearchResults([]);
+      return;
+    }
+
+    let results = [];
+
+    if (searchType === 'id') {
+      // Validate property ID search
+      const id = parseInt(searchTerm);
+      if (isNaN(id) || id <= 0) {
+        setError('Property ID must be a positive number.');
+        setSearchResults([]);
+        return;
+      }
+      const property = getPropertyById(id);
+      if (property) {
+        results = [property];
+      }
+    } else if (searchType === 'address') {
+      // Validate Ethereum address search
+      if (!isValidEthereumAddress(searchTerm)) {
+        setError('Invalid Ethereum address format. Must start with 0x followed by 40 hex characters.');
+        setSearchResults([]);
+        return;
+      }
+      results = mockProperties.filter(p =>
+        p.owner.toLowerCase() === searchTerm.toLowerCase()
+      );
+    } else {
+      // Search all fields
+      results = mockProperties.filter(p =>
+        p.propertyId.toString().includes(searchTerm) ||
+        p.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.ownerName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setSearchResults(results);
   };
 
   return (
@@ -26,13 +67,45 @@ function PropertySearch() {
           <p>Search and verify any registered property on the blockchain</p>
         </div>
 
+        <div className="search-type-selector">
+          <label>Search By:</label>
+          <div className="type-buttons">
+            <button
+              className={searchType === 'all' ? 'active' : ''}
+              onClick={() => { setSearchType('all'); setError(''); }}
+            >
+              All Fields
+            </button>
+            <button
+              className={searchType === 'id' ? 'active' : ''}
+              onClick={() => { setSearchType('id'); setError(''); }}
+            >
+              Property ID
+            </button>
+            <button
+              className={searchType === 'address' ? 'active' : ''}
+              onClick={() => { setSearchType('address'); setError(''); }}
+            >
+              Owner Address
+            </button>
+          </div>
+        </div>
+
         <div className="search-box">
           <input
-            type="text"
-            placeholder="Search by Property ID, Location, or Owner Address..."
+            type={searchType === 'id' ? 'number' : 'text'}
+            placeholder={
+              searchType === 'id'
+                ? 'Enter Property ID (e.g., 1, 2, 3...)'
+                : searchType === 'address'
+                  ? 'Enter Ethereum address (0x...)'
+                  : 'Search by Property ID, Location, or Owner Address...'
+            }
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            className={error ? 'input-error' : ''}
+            min={searchType === 'id' ? '1' : undefined}
           />
           <button onClick={handleSearch}>
             <span>🔍</span>
@@ -40,9 +113,30 @@ function PropertySearch() {
           </button>
         </div>
 
+        {error && (
+          <div className="error-message-box">
+            <span className="error-icon">⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {hasSearched && !error && searchResults.length === 0 && (
+          <div className="no-results">
+            <div className="no-results-icon">📭</div>
+            <h3>No Properties Found</h3>
+            <p>No registered properties match your search criteria.</p>
+            {searchType === 'id' && (
+              <p className="hint">Make sure the Property ID exists (try 1-5).</p>
+            )}
+            {searchType === 'address' && (
+              <p className="hint">Make sure the address owns at least one property.</p>
+            )}
+          </div>
+        )}
+
         {searchResults.length > 0 && (
           <div className="search-results">
-            <h2>{searchResults.length} Properties Found</h2>
+            <h2>{searchResults.length} {searchResults.length === 1 ? 'Property' : 'Properties'} Found</h2>
             <div className="results-grid">
               {searchResults.map((property) => (
                 <div
@@ -133,8 +227,11 @@ function PropertySearch() {
                 key={prop.propertyId}
                 onClick={() => {
                   setSearchTerm(prop.propertyId.toString());
+                  setSearchType('id');
                   setSearchResults([prop]);
                   setSelectedProperty(prop);
+                  setHasSearched(true);
+                  setError('');
                 }}
               >
                 Property #{prop.propertyId}

@@ -1,3 +1,82 @@
+// ============================================================
+// HARDCODED ACCOUNTS (Hardhat Default Accounts)
+// ============================================================
+export const ADMIN_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+export const USER_ADDRESS = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
+
+// Simulated current user - change this to USER_ADDRESS to test as standard user
+export const CURRENT_USER = USER_ADDRESS;
+
+// ============================================================
+// VALIDATION FUNCTIONS
+// ============================================================
+
+/**
+ * Validates if a string is a valid Ethereum address.
+ * Must start with '0x' followed by 40 hexadecimal characters.
+ * @param {string} address - The address to validate.
+ * @returns {boolean} - True if valid, false otherwise.
+ */
+export const isValidEthereumAddress = (address) => {
+  if (!address || typeof address !== 'string') return false;
+  const regex = /^0x[a-fA-F0-9]{40}$/;
+  return regex.test(address);
+};
+
+/**
+ * Checks if the current user is the admin.
+ * @returns {boolean} - True if admin, false otherwise.
+ */
+export const isAdmin = () => {
+  return CURRENT_USER.toLowerCase() === ADMIN_ADDRESS.toLowerCase();
+};
+
+/**
+ * Checks if a property with the given ID exists.
+ * @param {number} propertyId - The property ID to check.
+ * @returns {boolean} - True if exists, false otherwise.
+ */
+export const propertyExists = (propertyId) => {
+  return mockProperties.some(p => p.propertyId === propertyId);
+};
+
+/**
+ * Gets a property by its ID.
+ * @param {number} propertyId - The property ID to find.
+ * @returns {object|null} - The property object or null if not found.
+ */
+export const getPropertyById = (propertyId) => {
+  return mockProperties.find(p => p.propertyId === propertyId) || null;
+};
+
+/**
+ * Checks if the current user owns the specified property.
+ * @param {number} propertyId - The property ID to check.
+ * @returns {boolean} - True if the current user owns it, false otherwise.
+ */
+export const isPropertyOwner = (propertyId) => {
+  const property = getPropertyById(propertyId);
+  if (!property) return false;
+  return property.owner.toLowerCase() === CURRENT_USER.toLowerCase();
+};
+
+/**
+ * Gets the current user object.
+ * @returns {object} - The current user details.
+ */
+export const getCurrentUser = () => {
+  return {
+    address: CURRENT_USER,
+    isAdmin: isAdmin(),
+    name: isAdmin() ? "Admin User" : "Standard User",
+    balance: "10.5 ETH",
+    network: "Hardhat Local"
+  };
+};
+
+// ============================================================
+// MOCK PROPERTY DATA
+// ============================================================
 export const mockProperties = [
   {
     propertyId: 1,
@@ -66,6 +145,9 @@ export const mockProperties = [
   }
 ];
 
+// ============================================================
+// MOCK TRANSACTION DATA
+// ============================================================
 export const mockTransactions = [
   {
     id: 1,
@@ -97,6 +179,9 @@ export const mockTransactions = [
   }
 ];
 
+// ============================================================
+// DEPRECATED - Use getCurrentUser() instead
+// ============================================================
 export const mockUser = {
   address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   name: "Demo Admin (Assam)",
@@ -105,6 +190,9 @@ export const mockUser = {
   network: "Ethereum Mainnet"
 };
 
+// ============================================================
+// UTILITY FUNCTIONS FOR MOCK TRANSACTIONS
+// ============================================================
 export const generateMockTransaction = () => {
   const chars = '0123456789abcdef';
   let hash = '0x';

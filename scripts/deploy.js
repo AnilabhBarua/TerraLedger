@@ -1,26 +1,14 @@
-const hre = require("hardhat");
+import hre from "hardhat";
 
 async function main() {
-  console.log("🚀 Deploying TerraLedger contract...\n");
-
-  const [deployer] = await hre.ethers.getSigners();
-  console.log("📝 Deploying with account:", deployer.address);
-  console.log("💰 Account balance:", (await hre.ethers.provider.getBalance(deployer.address)).toString(), "wei\n");
-
   const TerraLedger = await hre.ethers.getContractFactory("TerraLedger");
+
   const terraLedger = await TerraLedger.deploy();
+
+  // Ethers v6 fix
   await terraLedger.waitForDeployment();
 
-  const contractAddress = await terraLedger.getAddress();
-
-  console.log("✅ TerraLedger deployed to:", contractAddress);
-  console.log("👤 Contract owner:", await terraLedger.owner());
-  console.log("\n" + "=".repeat(60));
-  console.log("🔧 IMPORTANT: Update CONTRACT_ADDRESS in src/contractConfig.js");
-  console.log("=".repeat(60));
-  console.log(`\nCopy this address: ${contractAddress}\n`);
-
-  return contractAddress;
+  console.log("TerraLedger deployed to:", terraLedger.target);
 }
 
 main()
