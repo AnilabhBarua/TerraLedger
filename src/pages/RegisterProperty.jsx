@@ -74,7 +74,7 @@ function RegisterProperty() {
       blockNumber: blockNum,
       timestamp: new Date().toISOString(),
       gasUsed: '89234',
-      gasPrice: '28 Gwei'
+      gasPrice: '28 Eth'
     });
 
     setLoading(false);

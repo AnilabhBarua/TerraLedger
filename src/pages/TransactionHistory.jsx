@@ -19,7 +19,7 @@ function TransactionHistory() {
       blockNumber: prop.blockNumber,
       status: 'confirmed',
       gasUsed: '89234',
-      gasPrice: '25 Gwei'
+      gasPrice: '25 Eth'
     }))
   ];
 

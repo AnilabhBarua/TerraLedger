@@ -99,7 +99,7 @@ function TransferOwnership() {
       from: property.owner,
       to: newOwner,
       gasUsed: '95421',
-      gasPrice: '32 Gwei'
+      gasPrice: '32 eth'
     });
 
     setLoading(false);

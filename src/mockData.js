@@ -5,7 +5,7 @@ export const ADMIN_ADDRESS = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 export const USER_ADDRESS = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
 
 // Simulated current user - change this to USER_ADDRESS to test as standard user
-export const CURRENT_USER = USER_ADDRESS;
+export const CURRENT_USER = ADMIN_ADDRESS;
 
 // ============================================================
 // VALIDATION FUNCTIONS
@@ -69,7 +69,7 @@ export const getCurrentUser = () => {
     address: CURRENT_USER,
     isAdmin: isAdmin(),
     name: isAdmin() ? "Admin User" : "Standard User",
-    balance: "10.5 ETH",
+    balance: "5000.5 ETH",
     network: "Hardhat Local"
   };
 };
@@ -161,7 +161,7 @@ export const mockTransactions = [
     blockNumber: 15512345,
     status: "confirmed",
     gasUsed: "84523",
-    gasPrice: "22 Gwei"
+    gasPrice: "22 Eth"
   },
   {
     id: 2,
@@ -175,7 +175,7 @@ export const mockTransactions = [
     blockNumber: 15589234,
     status: "confirmed",
     gasUsed: "91245",
-    gasPrice: "28 Gwei"
+    gasPrice: "28 Eth"
   }
 ];
 
