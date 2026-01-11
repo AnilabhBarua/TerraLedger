@@ -1,53 +1,70 @@
-TerraLedger: A Blockchain-Based Land Registry
+TerraLedger: A Blockchain-Based Land Registry System
+TerraLedger is a decentralized application (DApp) designed to modernize land record management by replacing centralized, paper-heavy systems with a transparent, secure, and immutable blockchain ledger. Built on the Ethereum network, it leverages smart contracts to automate property registration and ownership transfers, eliminating intermediaries and preventing fraud.
 
 Project Overview
+Traditional land registries suffer from inefficiencies, lack of transparency, and vulnerability to data tampering. TerraLedger solves these issues by creating a single source of truth on the blockchain.
 
-TerraLedger is a decentralized application (DApp) designed to address the critical vulnerabilities and inefficiencies of traditional, centralized land registry systems. By leveraging the Ethereum blockchain, this project provides a transparent, secure, and immutable ledger for land ownership and transfer.
 
-The core of the project is a smart contract built with Solidity that acts as a digital deed registry. This contract ensures that all transactions are final, auditable, and protected from fraud, fundamentally changing how land titles are managed.
+Immutable Records: Once registered, property data cannot be altered or deleted.
 
-The Problem
+Decentralized Security: Distributed ledger technology prevents single points of failure.
 
-Traditional land registries are often paper-based or stored in siloed digital databases. This centralized approach is susceptible to:
+Smart Contract Automation: Logic for registration and transfer is enforced by code, not clerks.
 
-Fraud: Records can be illicitly altered, forged, or duplicated.
+🛠 Tech Stack
+This project utilizes a modern Web3 development stack:
 
-Inefficiency: Transfers of ownership are often slow, costly, and require numerous intermediaries.
+Blockchain Layer: Solidity (v0.8.20), Ethereum Virtual Machine (EVM)
 
-Lack of Transparency: It can be difficult for the public to verify ownership history, leading to disputes and a lack of trust.
+Development Framework: Hardhat (for compilation, deployment, and local node testing)
 
-Data Loss: Centralized systems are at risk of data loss due to disaster, mismanagement, or targeted attacks.
+Frontend Interface: React.js (via Vite)
 
-The Solution: TerraLedger
+Blockchain Interaction: Ethers.js (Web3 Bridge)
 
-TerraLedger solves these problems by moving the entire registry onto the blockchain, providing a single source of truth for all land titles.
+Authentication: MetaMask (Wallet-based identity management)
 
-Immutability: Once a property is registered or a transfer is completed, it is recorded on the blockchain forever. It cannot be altered or deleted, eliminating the possibility of fraud.
+Core Features
+1. Role-Based Access Control (RBAC)
+The system distinguishes between Administrators and Public Users.
 
-Security: The system is secured by cryptographic principles. All ownership transfers must be digitally signed by the rightful owner, making unauthorized transactions impossible.
+Admin: The contract deployer (government/authority) has exclusive rights to register new properties (Minting).
 
-Transparency: Anyone can view the history and current ownership of a property (while maintaining the privacy of real-world identities), making the entire system auditable and trustworthy.
-
-Efficiency: By using a smart contract, the rules for property transfer are automated, reducing the need for intermediaries and speeding up the transaction process.
-
-Core Smart Contract Features
-
-The TerraLedger.sol smart contract is the heart of the application and enforces all the rules of the registry.
-
-1. Administrative Control
-
-A single, authorized "owner" (representing a government or administrative body) is designated when the contract is first deployed. This administrative account is the only one with the power to add new, officially recognized properties to the ledger.
+Property Owner: Users can view their assets and initiate transfers.
 
 2. Secure Property Registration
+Only the authorized administrator can execute the registerProperty function. This mints a new land title on the blockchain containing:
 
-The registerProperty function allows the administrative owner to mint a new land title. It records the property's unique ID, its location, and the Ethereum address of its first rightful owner.
+Unique Property ID
 
-3. Secure Ownership Transfer
+Location/Physical Description
 
-The transferOwnership function allows a property owner to securely transfer their title to a new owner. The smart contract automatically enforces two critical security checks:
+Initial Owner's Wallet Address
 
-It verifies that the property being transferred actually exists.
+Registration Timestamp
 
-It cryptographically confirms that the person initiating the transfer is the current, legitimate owner of that specific property.
+3. Peer-to-Peer Ownership Transfer
+The transferOwnership function allows a property owner to transfer their title to a buyer without an intermediary. The smart contract enforces strict security checks:
 
-If either of these checks fails, the transaction is automatically rejected, ensuring that only a rightful owner can ever transfer their property.
+Existence Check: Verifies the property ID is valid and registered.
+
+Cryptographic Ownership Verification: Ensures msg.sender (the transaction signer) matches the current owner of record. If this check fails, the transaction is automatically reverted.
+
+4. Wallet-Based Authentication
+TerraLedger eliminates traditional usernames and passwords. Users authenticate via MetaMask, using their unique Ethereum wallet addresses to sign transactions securely.
+
+ Future Roadmap & Next Phase
+The current implementation has successfully demonstrated a web-based DApp on a local Hardhat network. The immediate next phase of development focuses on accessibility and mobile integration:
+
+ Android Application Development: We are currently developing a native Android mobile app (using React Native or Kotlin). This will allow users to view property records, receive notifications, and sign transactions directly from their smartphones.
+
+Cloud Synchronization: Integrating optional cloud backups for non-critical user preferences.
+
+Government API Integration: Future plans include APIs to interface with existing legacy government databases.
+
+Authors
+Anilabh Barua
+
+Rishikesh Verma
+
+Guided by: Dr. Satyajit Sarmah, Gauhati University
