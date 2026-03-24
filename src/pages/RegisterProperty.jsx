@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
-import {
-  generateMockTransaction,
-  generateBlockNumber,
-  isAdmin,
-  isValidEthereumAddress,
-  getCurrentUser,
-  ADMIN_ADDRESS
-} from '../mockData';
+import { ethers } from 'ethers';
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
 import './RegisterProperty.css';
 
 function RegisterProperty() {
@@ -19,8 +13,13 @@ function RegisterProperty() {
   const [transactionData, setTransactionData] = useState(null);
   const [errors, setErrors] = useState({});
 
-  const currentUser = getCurrentUser();
-  const userIsAdmin = isAdmin();
+  const userIsAdmin = localStorage.getItem('wallet_is_admin') === 'true';
+  const currentUserAddress = localStorage.getItem('wallet_user_address') || 'Not Connected';
+
+  // Simple validation for ethereum address
+  const isValidEthereumAddress = (address) => {
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
+  };
 
   // Validate all form inputs
   const validateForm = () => {
@@ -60,33 +59,44 @@ function RegisterProperty() {
       return;
     }
 
+    if (!window.ethereum) {
+      setErrors({ submit: "MetaMask is not installed" });
+      return;
+    }
+
     setLoading(true);
     setSuccess(false);
 
-    // Simulate blockchain transaction delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-    const txHash = generateMockTransaction();
-    const blockNum = generateBlockNumber();
+      const tx = await contract.registerProperty(ownerAddress, location, area, propertyType);
+      const receipt = await tx.wait();
 
-    setTransactionData({
-      hash: txHash,
-      blockNumber: blockNum,
-      timestamp: new Date().toISOString(),
-      gasUsed: '89234',
-      gasPrice: '28 Eth'
-    });
+      setTransactionData({
+        hash: tx.hash,
+        blockNumber: receipt.blockNumber,
+        timestamp: new Date().toISOString(),
+        gasUsed: receipt.gasUsed.toString(),
+        gasPrice: ethers.formatUnits(receipt.gasPrice || tx.gasPrice || 0, 'gwei') + ' Gwei'
+      });
 
-    setLoading(false);
-    setSuccess(true);
-
-    setTimeout(() => {
-      setOwnerAddress('');
-      setLocation('');
-      setArea('');
-      setSuccess(false);
-      setTransactionData(null);
-    }, 10000);
+      setSuccess(true);
+      setTimeout(() => {
+        setOwnerAddress('');
+        setLocation('');
+        setArea('');
+        setSuccess(false);
+        setTransactionData(null);
+      }, 10000);
+    } catch (error) {
+      console.error("Transaction Error:", error);
+      setErrors({ submit: error.reason || error.message || "Transaction failed" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // If user is not admin, show access denied
@@ -100,12 +110,10 @@ function RegisterProperty() {
             <p>Only the contract administrator can register new properties.</p>
             <div className="admin-info">
               <p><strong>Your Address:</strong></p>
-              <code>{currentUser.address}</code>
-              <p style={{ marginTop: '1rem' }}><strong>Admin Address:</strong></p>
-              <code>{ADMIN_ADDRESS}</code>
+              <code>{currentUserAddress}</code>
             </div>
             <p className="hint">
-              To test registration, change <code>CURRENT_USER</code> to <code>ADMIN_ADDRESS</code> in <code>mockData.js</code>.
+              Please connect to MetaMask using the deployer wallet (Admin) to access this page.
             </p>
           </div>
         </div>
@@ -128,6 +136,11 @@ function RegisterProperty() {
 
         {!success ? (
           <form onSubmit={handleSubmit} className="register-form">
+            {errors.submit && (
+              <div className="error-message-box" style={{ marginBottom: '1rem', color: 'red' }}>
+                {errors.submit}
+              </div>
+            )}
             <div className="form-row">
               <div className="form-group">
                 <label>

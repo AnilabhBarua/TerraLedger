@@ -8,6 +8,7 @@ import type {
   FunctionFragment,
   Result,
   Interface,
+  EventFragment,
   AddressLike,
   ContractRunner,
   ContractMethod,
@@ -17,6 +18,7 @@ import type {
   TypedContractEvent,
   TypedDeferredTopicFilter,
   TypedEventLog,
+  TypedLogDescription,
   TypedListener,
   TypedContractMethod,
 } from "./common";
@@ -30,6 +32,10 @@ export interface TerraLedgerInterface extends Interface {
       | "registerProperty"
       | "transferOwnership"
   ): FunctionFragment;
+
+  getEvent(
+    nameOrSignatureOrTopic: "OwnershipTransferred" | "PropertyRegistered"
+  ): EventFragment;
 
   encodeFunctionData(
     functionFragment: "nextPropertyId",
@@ -63,6 +69,56 @@ export interface TerraLedgerInterface extends Interface {
     functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
+}
+
+export namespace OwnershipTransferredEvent {
+  export type InputTuple = [
+    propertyId: BigNumberish,
+    oldOwner: AddressLike,
+    newOwner: AddressLike
+  ];
+  export type OutputTuple = [
+    propertyId: bigint,
+    oldOwner: string,
+    newOwner: string
+  ];
+  export interface OutputObject {
+    propertyId: bigint;
+    oldOwner: string;
+    newOwner: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace PropertyRegisteredEvent {
+  export type InputTuple = [
+    propertyId: BigNumberish,
+    owner: AddressLike,
+    location: string,
+    area: string,
+    propertyType: string
+  ];
+  export type OutputTuple = [
+    propertyId: bigint,
+    owner: string,
+    location: string,
+    area: string,
+    propertyType: string
+  ];
+  export interface OutputObject {
+    propertyId: bigint;
+    owner: string;
+    location: string;
+    area: string;
+    propertyType: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export interface TerraLedger extends BaseContract {
@@ -190,5 +246,42 @@ export interface TerraLedger extends BaseContract {
     "nonpayable"
   >;
 
-  filters: {};
+  getEvent(
+    key: "OwnershipTransferred"
+  ): TypedContractEvent<
+    OwnershipTransferredEvent.InputTuple,
+    OwnershipTransferredEvent.OutputTuple,
+    OwnershipTransferredEvent.OutputObject
+  >;
+  getEvent(
+    key: "PropertyRegistered"
+  ): TypedContractEvent<
+    PropertyRegisteredEvent.InputTuple,
+    PropertyRegisteredEvent.OutputTuple,
+    PropertyRegisteredEvent.OutputObject
+  >;
+
+  filters: {
+    "OwnershipTransferred(uint256,address,address)": TypedContractEvent<
+      OwnershipTransferredEvent.InputTuple,
+      OwnershipTransferredEvent.OutputTuple,
+      OwnershipTransferredEvent.OutputObject
+    >;
+    OwnershipTransferred: TypedContractEvent<
+      OwnershipTransferredEvent.InputTuple,
+      OwnershipTransferredEvent.OutputTuple,
+      OwnershipTransferredEvent.OutputObject
+    >;
+
+    "PropertyRegistered(uint256,address,string,string,string)": TypedContractEvent<
+      PropertyRegisteredEvent.InputTuple,
+      PropertyRegisteredEvent.OutputTuple,
+      PropertyRegisteredEvent.OutputObject
+    >;
+    PropertyRegistered: TypedContractEvent<
+      PropertyRegisteredEvent.InputTuple,
+      PropertyRegisteredEvent.OutputTuple,
+      PropertyRegisteredEvent.OutputObject
+    >;
+  };
 }

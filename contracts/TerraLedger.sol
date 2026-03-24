@@ -21,6 +21,20 @@ contract TerraLedger {
 
     address public owner;
 
+    event PropertyRegistered(
+        uint256 indexed propertyId,
+        address indexed owner,
+        string location,
+        string area,
+        string propertyType
+    );
+
+    event OwnershipTransferred(
+        uint256 indexed propertyId,
+        address indexed oldOwner,
+        address indexed newOwner
+    );
+
     constructor() {
         owner = msg.sender;
     }
@@ -41,6 +55,15 @@ contract TerraLedger {
             _propertyType,
             true
         );
+
+        emit PropertyRegistered(
+            newPropertyId,
+            _propertyOwner,
+            _location,
+            _area,
+            _propertyType
+        );
+
         nextPropertyId++;
     }
 
@@ -58,8 +81,12 @@ contract TerraLedger {
         require(property.isRegistered, "Property does not exist.");
         require(msg.sender == property.owner, "You are not the owner of this property.");
 
+        address oldOwner = property.owner;
+
         // Step 3: Update the owner.
         property.owner = _newOwner;
+
+        emit OwnershipTransferred(_propertyId, oldOwner, _newOwner);
     }
     
 }

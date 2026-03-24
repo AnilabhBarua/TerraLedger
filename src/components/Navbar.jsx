@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { mockUser } from '../mockData';
 import './Navbar.css';
 
 function Navbar() {
   const location = useLocation();
+  const [walletAddress, setWalletAddress] = useState(localStorage.getItem('wallet_user_address'));
+
+  useEffect(() => {
+    // Simple polling to catch localStorage updates since 'storage' event only fires across tabs
+    const interval = setInterval(() => {
+      setWalletAddress(localStorage.getItem('wallet_user_address'));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const isActive = (path) => {
     return location.pathname === path;
@@ -42,7 +50,9 @@ function Navbar() {
         <div className="navbar-right">
           <Link to="/wallet" className="wallet-button">
             <span className="wallet-icon">👛</span>
-            <span className="wallet-text">{mockUser.address.substring(0, 6)}...{mockUser.address.slice(-4)}</span>
+            <span className="wallet-text">
+              {walletAddress ? `${walletAddress.substring(0, 6)}...${walletAddress.slice(-4)}` : 'Connect'}
+            </span>
           </Link>
         </div>
       </div>

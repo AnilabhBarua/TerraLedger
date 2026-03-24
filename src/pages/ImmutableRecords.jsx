@@ -1,37 +1,112 @@
-import React from 'react';
-import { mockProperties } from '../mockData';
+import React, { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
 import './ImmutableRecords.css';
 
 function ImmutableRecords() {
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProps = async () => {
+      if (!window.ethereum) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+        
+        // Fetch properties
+        const nextId = await contract.nextPropertyId();
+        const props = [];
+        for (let i = 1; i < Number(nextId); i++) {
+          const p = await contract.properties(i);
+          if (p.isRegistered) {
+            props.push({ 
+                propertyId: Number(p.propertyId),
+                owner: p.owner,
+                location: p.location,
+                area: p.area,
+                type: p.propertyType
+            });
+          }
+        }
+        
+        // Fetch registration events for hash/block info
+        const filterRegistered = contract.filters.PropertyRegistered();
+        const logsRegistered = await contract.queryFilter(filterRegistered, 0, 'latest');
+        
+        // Merge
+        const merged = await Promise.all(props.map(async prop => {
+           const log = logsRegistered.find(l => Number(l.args[0]) === prop.propertyId);
+           let timestamp = new Date();
+           if (log) {
+               const block = await provider.getBlock(log.blockHash);
+               timestamp = new Date(block.timestamp * 1000);
+           }
+           return {
+             ...prop,
+             transactionHash: log ? log.transactionHash : 'Unknown',
+             blockNumber: log ? log.blockNumber : 0,
+             registrationDate: timestamp
+           };
+        }));
+        
+        setRecords(merged);
+      } catch (err) { 
+          console.error(err); 
+      } finally {
+          setLoading(false);
+      }
+    };
+    fetchProps();
+  }, []);
+
+
+  const renderBlocks = () => {
+    // Unique block numbers from records
+    const blockNumbers = [...new Set(records.map(r => r.blockNumber).filter(b => b > 0))];
+    if (blockNumbers.length === 0) return null;
+
+    return blockNumbers.slice(0, 5).map((block, index) => {
+      const txCount = records.filter(r => r.blockNumber === block).length;
+      return (
+        <div key={block} className="block">
+          <div className="block-header">
+            <span>Block #{block}</span>
+          </div>
+          <div className="block-content">
+            <div className="block-tx">{txCount} registration tx(s)</div>
+          </div>
+        </div>
+      );
+    });
+  };
+
   return (
     <div className="records-page">
       <div className="records-container">
         <div className="records-header">
           <div className="header-icon">🔒</div>
           <h1>Immutable Blockchain Records</h1>
-          <p>Permanent, tamper-proof property records secured by blockchain technology</p>
+          <p>Permanent, tamper-proof property records secured by real blockchain technology</p>
         </div>
 
-        <div className="blockchain-visual">
-          <div className="block-chain">
-            {[1, 2, 3, 4, 5].map((block) => (
-              <div key={block} className="block">
-                <div className="block-header">
-                  <span>Block #{15234560 + block * 1000}</span>
-                </div>
-                <div className="block-content">
-                  <div className="block-hash">
-                    {`0x${Math.random().toString(16).substr(2, 16)}...`}
-                  </div>
-                  <div className="block-tx">{Math.floor(Math.random() * 50 + 10)} transactions</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        {records.length > 0 && (
+            <div className="blockchain-visual">
+            <div className="block-chain">
+                {renderBlocks()}
+            </div>
+            </div>
+        )}
 
         <div className="records-grid">
-          {mockProperties.map((property) => (
+          {loading ? (
+              <p>Loading immutable records from blockchain...</p>
+          ) : records.length === 0 ? (
+              <p>No records found on the blockchain.</p>
+          ) : records.map((property) => (
             <div key={property.propertyId} className="record-card">
               <div className="record-header">
                 <div className="property-id">Property #{property.propertyId}</div>
@@ -51,7 +126,7 @@ function ImmutableRecords() {
 
                 <div className="record-item">
                   <span className="label">Registration Date</span>
-                  <span className="value">{new Date(property.registrationDate).toLocaleString()}</span>
+                  <span className="value">{property.registrationDate.toLocaleString()}</span>
                 </div>
 
                 <div className="record-item">

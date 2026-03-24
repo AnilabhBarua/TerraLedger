@@ -1,48 +1,94 @@
 import React, { useState, useEffect } from 'react';
-import { getCurrentUser } from '../mockData';
+import { ethers } from 'ethers';
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
 import './WalletAuth.css';
 
 function WalletAuth() {
   const [connected, setConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
-  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+  const [currentUser, setCurrentUser] = useState({
+    name: 'Web3 User',
+    address: '',
+    balance: '0 ETH',
+    network: 'Unknown',
+    isAdmin: false
+  });
 
   useEffect(() => {
-    const persisted = localStorage.getItem('wallet_connected') === 'true';
-    const storedAddr = localStorage.getItem('wallet_user_address');
-    const actualUser = getCurrentUser();
-    setCurrentUser(actualUser);
+    const checkConnection = async () => {
+      const persisted = localStorage.getItem('wallet_connected') === 'true';
+      if (persisted && window.ethereum) {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          await loadUserData(accounts[0]);
+        } else {
+          handleDisconnect();
+        }
+      }
+    };
+    checkConnection();
 
-    if (persisted && storedAddr && storedAddr.toLowerCase() === actualUser.address.toLowerCase()) {
-      setConnected(true);
-    } else {
-      setConnected(false);
-      localStorage.removeItem('wallet_connected');
-      localStorage.removeItem('wallet_user_address');
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length > 0) {
+          loadUserData(accounts[0]);
+        } else {
+          handleDisconnect();
+        }
+      });
+      window.ethereum.on('chainChanged', () => window.location.reload());
     }
   }, []);
 
-  const handleConnect = async () => {
-    setConnecting(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setConnected(true);
-    setConnecting(false);
-    const user = getCurrentUser();
-    setCurrentUser(user);
+  const loadUserData = async (address) => {
     try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const network = await provider.getNetwork();
+      const balanceWei = await provider.getBalance(address);
+      const balanceEth = ethers.formatEther(balanceWei);
+      
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+      const ownerAddress = await contract.owner();
+      const isAdmin = ownerAddress.toLowerCase() === address.toLowerCase();
+
+      setCurrentUser({
+        name: isAdmin ? 'Platform Admin' : 'Property Owner',
+        address: address,
+        balance: parseFloat(balanceEth).toFixed(4) + ' ETH',
+        network: network.name === 'unknown' ? 'Localhost' : network.name,
+        isAdmin: isAdmin
+      });
+
+      setConnected(true);
       localStorage.setItem('wallet_connected', 'true');
-      localStorage.setItem('wallet_user_address', user.address);
+      localStorage.setItem('wallet_user_address', address);
+      localStorage.setItem('wallet_is_admin', isAdmin.toString());
+    } catch (error) {
+      console.error("Error loading data:", error);
+    }
+  };
+
+  const handleConnect = async () => {
+    if (!window.ethereum) {
+      alert("Please install MetaMask!");
+      return;
+    }
+    setConnecting(true);
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      await loadUserData(accounts[0]);
     } catch (e) {
-      // ignore localStorage errors in environments where it's not available
+      console.error(e);
+    } finally {
+      setConnecting(false);
     }
   };
 
   const handleDisconnect = () => {
     setConnected(false);
-    try {
-      localStorage.removeItem('wallet_connected');
-      localStorage.removeItem('wallet_user_address');
-    } catch (e) {}
+    localStorage.removeItem('wallet_connected');
+    localStorage.removeItem('wallet_user_address');
+    localStorage.removeItem('wallet_is_admin');
   };
 
   return (

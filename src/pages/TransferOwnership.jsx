@@ -1,15 +1,6 @@
-import React, { useState } from 'react';
-import {
-  mockProperties,
-  generateMockTransaction,
-  generateBlockNumber,
-  isValidEthereumAddress,
-  getPropertyById,
-  isPropertyOwner,
-  propertyExists,
-  getCurrentUser,
-  CURRENT_USER
-} from '../mockData';
+import React, { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
 import './TransferOwnership.css';
 
 function TransferOwnership() {
@@ -21,57 +12,79 @@ function TransferOwnership() {
   const [transactionData, setTransactionData] = useState(null);
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
+  const [allProperties, setAllProperties] = useState([]);
+  const [userProperties, setUserProperties] = useState([]);
 
-  const currentUser = getCurrentUser();
+  const currentUserAddress = localStorage.getItem('wallet_user_address') || 'Not Connected';
 
-  // Get properties owned by the current user
-  const userProperties = mockProperties.filter(
-    p => p.owner.toLowerCase() === CURRENT_USER.toLowerCase()
-  );
+  useEffect(() => {
+    const fetchProps = async () => {
+      if (!window.ethereum) return;
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+      try {
+        const nextId = await contract.nextPropertyId();
+        const props = [];
+        for (let i = 1; i < Number(nextId); i++) {
+          const p = await contract.properties(i);
+          if (p.isRegistered) {
+            props.push({
+              propertyId: Number(p.propertyId),
+              owner: p.owner,
+              location: p.location,
+              area: p.area,
+              type: p.propertyType,
+              registrationDate: new Date()
+            });
+          }
+        }
+        setAllProperties(props);
+        if (currentUserAddress !== 'Not Connected') {
+          setUserProperties(props.filter(p => p.owner.toLowerCase() === currentUserAddress.toLowerCase()));
+        }
+      } catch (err) { console.error(err); }
+    };
+    fetchProps();
+  }, [currentUserAddress]);
+
+  const isValidEthereumAddress = (address) => {
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
+  };
 
   const handlePropertyLookup = () => {
     setErrors({});
-
     const id = parseInt(propertyId);
-
-    // Validate property ID is a number
     if (isNaN(id) || id <= 0) {
-      setErrors({ propertyId: 'Please enter a valid property ID (positive number).' });
+      setErrors({ propertyId: 'Please enter a valid property ID.' });
       return;
     }
-
-    // Check if property exists
-    if (!propertyExists(id)) {
+    
+    const found = allProperties.find(p => p.propertyId === id);
+    if (!found) {
       setErrors({ propertyId: `Property with ID ${id} does not exist.` });
       return;
     }
 
-    // Check if current user owns this property
-    if (!isPropertyOwner(id)) {
-      const prop = getPropertyById(id);
+    if (found.owner.toLowerCase() !== currentUserAddress.toLowerCase()) {
       setErrors({
-        propertyId: `You are not the owner of this property. This property belongs to ${prop.ownerName} (${prop.owner.slice(0, 6)}...${prop.owner.slice(-4)}).`
+        propertyId: `You are not the owner of this property. This belongs to ${found.owner.slice(0, 6)}...${found.owner.slice(-4)}.`
       });
       return;
     }
 
-    const found = getPropertyById(id);
     setProperty(found);
     setStep(2);
   };
 
   const validateTransferForm = () => {
     const newErrors = {};
-
-    // Validate new owner address
     if (!newOwner.trim()) {
       newErrors.newOwner = 'New owner address is required.';
     } else if (!isValidEthereumAddress(newOwner)) {
-      newErrors.newOwner = 'Invalid Ethereum address. Must start with 0x followed by 40 hex characters.';
+      newErrors.newOwner = 'Invalid Ethereum address.';
     } else if (newOwner.toLowerCase() === property.owner.toLowerCase()) {
-      newErrors.newOwner = 'Cannot transfer to the same owner. New owner must be different.';
+      newErrors.newOwner = 'Cannot transfer to the same owner.';
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -79,31 +92,41 @@ function TransferOwnership() {
   const handleTransfer = async (e) => {
     e.preventDefault();
     setErrors({});
+    if (!validateTransferForm()) return;
 
-    if (!validateTransferForm()) {
+    if (!window.ethereum) {
+      setErrors({ newOwner: "MetaMask is not installed" });
       return;
     }
 
     setLoading(true);
     setStep(3);
 
-    await new Promise(resolve => setTimeout(resolve, 2500));
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-    const txHash = generateMockTransaction();
-    const blockNum = generateBlockNumber();
+      const tx = await contract.transferOwnership(property.propertyId, newOwner);
+      const receipt = await tx.wait();
 
-    setTransactionData({
-      hash: txHash,
-      blockNumber: blockNum,
-      timestamp: new Date().toISOString(),
-      from: property.owner,
-      to: newOwner,
-      gasUsed: '95421',
-      gasPrice: '32 eth'
-    });
-
-    setLoading(false);
-    setSuccess(true);
+      setTransactionData({
+        hash: tx.hash,
+        blockNumber: receipt.blockNumber,
+        timestamp: new Date().toISOString(),
+        from: property.owner,
+        to: newOwner,
+        gasUsed: receipt.gasUsed.toString(),
+        gasPrice: ethers.formatUnits(receipt.gasPrice || tx.gasPrice || 0, 'gwei') + ' Gwei'
+      });
+      setSuccess(true);
+    } catch (error) {
+      console.error(error);
+      setErrors({ newOwner: error.reason || error.message || "Transaction failed" });
+      setStep(2);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -125,7 +148,7 @@ function TransferOwnership() {
           <p>Securely transfer property ownership with blockchain verification</p>
           <div className="current-user-info">
             <span className="user-label">Connected as:</span>
-            <code>{currentUser.address.slice(0, 6)}...{currentUser.address.slice(-4)}</code>
+            <code>{currentUserAddress !== 'Not Connected' ? `${currentUserAddress.slice(0, 6)}...${currentUserAddress.slice(-4)}` : 'Not Connected'}</code>
           </div>
         </div>
 
@@ -177,7 +200,7 @@ function TransferOwnership() {
                 <div className="no-properties">
                   <p>You don't own any properties.</p>
                   <p className="hint">
-                    To test transfers, change <code>CURRENT_USER</code> in <code>mockData.js</code> to an address that owns a property.
+                    Please register a property from the Registration Page first.
                   </p>
                 </div>
               ) : (
@@ -210,14 +233,14 @@ function TransferOwnership() {
               <div className="all-properties-section">
                 <h3>All Registered Properties</h3>
                 <div className="properties-grid">
-                  {mockProperties.filter(p => !userProperties.includes(p)).map(prop => (
+                  {allProperties.filter(p => !userProperties.find(u => u.propertyId === p.propertyId)).map(prop => (
                     <div
                       key={prop.propertyId}
                       className="property-item not-owned"
                       onClick={() => {
                         setPropertyId(prop.propertyId.toString());
                         setErrors({
-                          propertyId: `You are not the owner of this property. This property belongs to ${prop.ownerName}.`
+                          propertyId: `You are not the owner of this property. This belongs to ${prop.owner.slice(0, 6)}...${prop.owner.slice(-4)}.`
                         });
                       }}
                     >
@@ -226,7 +249,7 @@ function TransferOwnership() {
                       <div className="property-location">{prop.location}</div>
                       <div className="property-details">
                         <span>{prop.type}</span>
-                        <span>Owner: {prop.ownerName}</span>
+                        <span>Owner: {prop.owner.slice(0, 4)}...{prop.owner.slice(-4)}</span>
                       </div>
                     </div>
                   ))}

@@ -1,31 +1,90 @@
-import React, { useState } from 'react';
-import { mockTransactions, mockProperties } from '../mockData';
+import React, { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
 import './TransactionHistory.css';
 
 function TransactionHistory() {
   const [filter, setFilter] = useState('all');
+  const [allTransactions, setAllTransactions] = useState([]);
+  const [transfersCount, setTransfersCount] = useState(0);
+  const [registrationsCount, setRegistrationsCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  const allTransactions = [
-    ...mockTransactions,
-    ...mockProperties.map(prop => ({
-      id: `reg-${prop.propertyId}`,
-      type: 'Registration',
-      propertyId: prop.propertyId,
-      from: 'System',
-      to: prop.owner,
-      toName: prop.ownerName,
-      transactionHash: prop.transactionHash,
-      timestamp: prop.registrationDate,
-      blockNumber: prop.blockNumber,
-      status: 'confirmed',
-      gasUsed: '89234',
-      gasPrice: '25 Eth'
-    }))
-  ];
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!window.ethereum) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
 
-  const sortedTransactions = allTransactions.sort((a, b) =>
-    new Date(b.timestamp) - new Date(a.timestamp)
-  );
+        const filterReg = contract.filters.PropertyRegistered();
+        const filterTrans = contract.filters.OwnershipTransferred();
+
+        const logsReg = await contract.queryFilter(filterReg, 0, 'latest');
+        const logsTrans = await contract.queryFilter(filterTrans, 0, 'latest');
+
+        const regs = await Promise.all(logsReg.map(async log => {
+          const block = await provider.getBlock(log.blockHash);
+          const tx = await provider.getTransaction(log.transactionHash);
+          return {
+            id: log.transactionHash + '-' + log.index,
+            type: 'Registration',
+            propertyId: Number(log.args[0]),
+            from: 'System',
+            to: log.args[1],
+            toName: 'Contract Deployer / Admin',
+            transactionHash: log.transactionHash,
+            timestamp: new Date(block.timestamp * 1000).toISOString(),
+            blockNumber: log.blockNumber,
+            status: 'confirmed',
+            gasUsed: 'Fetched Network Tx',
+            gasPrice: ethers.formatUnits(tx.gasPrice, 'gwei') + ' Gwei'
+          };
+        }));
+
+        const trans = await Promise.all(logsTrans.map(async log => {
+          const block = await provider.getBlock(log.blockHash);
+          const tx = await provider.getTransaction(log.transactionHash);
+          return {
+            id: log.transactionHash + '-' + log.index,
+            type: 'Transfer',
+            propertyId: Number(log.args[0]),
+            from: log.args[1],
+            to: log.args[2],
+            toName: 'New Owner',
+            transactionHash: log.transactionHash,
+            timestamp: new Date(block.timestamp * 1000).toISOString(),
+            blockNumber: log.blockNumber,
+            status: 'confirmed',
+            gasUsed: 'Fetched Network Tx',
+            gasPrice: ethers.formatUnits(tx.gasPrice, 'gwei') + ' Gwei'
+          };
+        }));
+
+        const combined = [...regs, ...trans].sort((a, b) => 
+          new Date(b.timestamp) - new Date(a.timestamp)
+        );
+        
+        setAllTransactions(combined);
+        setRegistrationsCount(regs.length);
+        setTransfersCount(trans.length);
+      } catch (err) {
+        console.error("Error fetching transactions:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const sortedTransactions = filter === 'all' 
+    ? allTransactions 
+    : filter === 'transfer' 
+        ? allTransactions.filter(tx => tx.type === 'Transfer')
+        : allTransactions.filter(tx => tx.type === 'Registration');
 
   return (
     <div className="transactions-page">
@@ -42,11 +101,11 @@ function TransactionHistory() {
             <div className="stat-label">Total Transactions</div>
           </div>
           <div className="stat-box">
-            <div className="stat-number">{mockTransactions.length}</div>
+            <div className="stat-number">{transfersCount}</div>
             <div className="stat-label">Transfers</div>
           </div>
           <div className="stat-box">
-            <div className="stat-number">{mockProperties.length}</div>
+            <div className="stat-number">{registrationsCount}</div>
             <div className="stat-label">Registrations</div>
           </div>
           <div className="stat-box">
@@ -77,7 +136,11 @@ function TransactionHistory() {
         </div>
 
         <div className="transactions-list">
-          {sortedTransactions.map((tx, index) => (
+          {loading ? (
+            <p>Loading transactions from blockchain...</p>
+          ) : sortedTransactions.length === 0 ? (
+            <p>No transactions found on the blockchain.</p>
+          ) : sortedTransactions.map((tx, index) => (
             <div key={tx.id || index} className="transaction-item">
               <div className="tx-main">
                 <div className="tx-icon">
@@ -107,7 +170,7 @@ function TransactionHistory() {
                   <div className="flow-item">
                     <div className="flow-label">From</div>
                     <div className="flow-value">
-                      {tx.fromName || tx.from}
+                      {tx.fromName || (tx.from === 'System' ? 'System' : 'Previous Owner')}
                       {tx.from !== 'System' && (
                         <div className="flow-address">{tx.from.substring(0, 20)}...</div>
                       )}

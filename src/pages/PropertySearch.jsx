@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { mockProperties, isValidEthereumAddress, getPropertyById } from '../mockData';
+import React, { useState, useEffect } from 'react';
+import { ethers } from 'ethers';
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
 import './PropertySearch.css';
 
 function PropertySearch() {
@@ -9,6 +10,46 @@ function PropertySearch() {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState('');
+  const [allProperties, setAllProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProps = async () => {
+      if (!window.ethereum) {
+        setLoading(false);
+        return;
+      }
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+        const nextId = await contract.nextPropertyId();
+        const props = [];
+        for (let i = 1; i < Number(nextId); i++) {
+          const p = await contract.properties(i);
+          if (p.isRegistered) {
+            props.push({
+              propertyId: Number(p.propertyId),
+              owner: p.owner,
+              location: p.location,
+              area: p.area,
+              type: p.propertyType,
+              registrationDate: new Date()
+            });
+          }
+        }
+        setAllProperties(props);
+      } catch (err) {
+        console.error("Error fetching properties:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProps();
+  }, []);
+
+  const isValidEthereumAddress = (address) => {
+    return /^0x[a-fA-F0-9]{40}$/.test(address);
+  };
 
   const handleSearch = () => {
     setError('');
@@ -24,34 +65,30 @@ function PropertySearch() {
     let results = [];
 
     if (searchType === 'id') {
-      // Validate property ID search
       const id = parseInt(searchTerm);
       if (isNaN(id) || id <= 0) {
         setError('Property ID must be a positive number.');
         setSearchResults([]);
         return;
       }
-      const property = getPropertyById(id);
+      const property = allProperties.find(p => p.propertyId === id);
       if (property) {
         results = [property];
       }
     } else if (searchType === 'address') {
-      // Validate Ethereum address search
       if (!isValidEthereumAddress(searchTerm)) {
-        setError('Invalid Ethereum address format. Must start with 0x followed by 40 hex characters.');
+        setError('Invalid Ethereum address format.');
         setSearchResults([]);
         return;
       }
-      results = mockProperties.filter(p =>
+      results = allProperties.filter(p =>
         p.owner.toLowerCase() === searchTerm.toLowerCase()
       );
     } else {
-      // Search all fields
-      results = mockProperties.filter(p =>
+      results = allProperties.filter(p =>
         p.propertyId.toString().includes(searchTerm) ||
         p.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.ownerName.toLowerCase().includes(searchTerm.toLowerCase())
+        p.owner.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -107,9 +144,9 @@ function PropertySearch() {
             className={error ? 'input-error' : ''}
             min={searchType === 'id' ? '1' : undefined}
           />
-          <button onClick={handleSearch}>
+          <button onClick={handleSearch} disabled={loading}>
             <span>🔍</span>
-            Search
+            {loading ? 'Loading...' : 'Search'}
           </button>
         </div>
 
@@ -120,17 +157,11 @@ function PropertySearch() {
           </div>
         )}
 
-        {hasSearched && !error && searchResults.length === 0 && (
+        {hasSearched && !error && searchResults.length === 0 && !loading && (
           <div className="no-results">
             <div className="no-results-icon">📭</div>
             <h3>No Properties Found</h3>
             <p>No registered properties match your search criteria.</p>
-            {searchType === 'id' && (
-              <p className="hint">Make sure the Property ID exists (try 1-5).</p>
-            )}
-            {searchType === 'address' && (
-              <p className="hint">Make sure the address owns at least one property.</p>
-            )}
           </div>
         )}
 
@@ -179,10 +210,6 @@ function PropertySearch() {
                   <span className="detail-value hash">{selectedProperty.owner}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="detail-label">Owner Name</span>
-                  <span className="detail-value">{selectedProperty.ownerName}</span>
-                </div>
-                <div className="detail-item">
                   <span className="detail-label">Location</span>
                   <span className="detail-value">{selectedProperty.location}</span>
                 </div>
@@ -195,22 +222,6 @@ function PropertySearch() {
                   <span className="detail-value">{selectedProperty.area}</span>
                 </div>
                 <div className="detail-item">
-                  <span className="detail-label">Estimated Value</span>
-                  <span className="detail-value">{selectedProperty.price}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Registration Date</span>
-                  <span className="detail-value">{new Date(selectedProperty.registrationDate).toLocaleString()}</span>
-                </div>
-                <div className="detail-item full-width">
-                  <span className="detail-label">Transaction Hash</span>
-                  <span className="detail-value hash">{selectedProperty.transactionHash}</span>
-                </div>
-                <div className="detail-item">
-                  <span className="detail-label">Block Number</span>
-                  <span className="detail-value">{selectedProperty.blockNumber.toLocaleString()}</span>
-                </div>
-                <div className="detail-item">
                   <span className="detail-label">Status</span>
                   <span className="detail-value status-active">Active & Verified</span>
                 </div>
@@ -221,8 +232,9 @@ function PropertySearch() {
 
         <div className="quick-search">
           <h3>Quick Search</h3>
+          {loading ? <p>Loading properties from blockchain...</p> : (
           <div className="quick-buttons">
-            {mockProperties.slice(0, 5).map((prop) => (
+            {allProperties.slice(0, 5).map((prop) => (
               <button
                 key={prop.propertyId}
                 onClick={() => {
@@ -238,6 +250,7 @@ function PropertySearch() {
               </button>
             ))}
           </div>
+          )}
         </div>
       </div>
     </div>
