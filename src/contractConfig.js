@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+export const CONTRACT_ADDRESS = "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9";
 
 export const CONTRACT_ABI = [
   {
@@ -165,6 +165,56 @@ export const CONTRACT_ABI = [
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "propertyId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      }
+    ],
+    "name": "TransferApproved",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "propertyId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      }
+    ],
+    "name": "TransferRequested",
+    "type": "event"
+  },
+  {
     "inputs": [],
     "name": "AUTHORITY_ROLE",
     "outputs": [
@@ -212,6 +262,32 @@ export const CONTRACT_ABI = [
       }
     ],
     "name": "addRegistrar",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_propertyId",
+        "type": "uint256"
+      }
+    ],
+    "name": "approveTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_propertyId",
+        "type": "uint256"
+      }
+    ],
+    "name": "cancelTransfer",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -396,6 +472,24 @@ export const CONTRACT_ABI = [
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "_propertyId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_buyer",
+        "type": "address"
+      }
+    ],
+    "name": "requestTransfer",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "role",
         "type": "bytes32"
@@ -434,18 +528,24 @@ export const CONTRACT_ABI = [
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "_propertyId",
+        "name": "",
         "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "_newOwner",
-        "type": "address"
       }
     ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "name": "transferRequests",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "pending",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   }
 ];

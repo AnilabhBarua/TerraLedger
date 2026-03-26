@@ -30,6 +30,8 @@ export interface TerraLedgerInterface extends Interface {
       | "DEFAULT_ADMIN_ROLE"
       | "REGISTRAR_ROLE"
       | "addRegistrar"
+      | "approveTransfer"
+      | "cancelTransfer"
       | "getRoleAdmin"
       | "grantRole"
       | "hasRole"
@@ -38,9 +40,10 @@ export interface TerraLedgerInterface extends Interface {
       | "registerProperty"
       | "removeRegistrar"
       | "renounceRole"
+      | "requestTransfer"
       | "revokeRole"
       | "supportsInterface"
-      | "transferOwnership"
+      | "transferRequests"
   ): FunctionFragment;
 
   getEvent(
@@ -50,6 +53,8 @@ export interface TerraLedgerInterface extends Interface {
       | "RoleAdminChanged"
       | "RoleGranted"
       | "RoleRevoked"
+      | "TransferApproved"
+      | "TransferRequested"
   ): EventFragment;
 
   encodeFunctionData(
@@ -67,6 +72,14 @@ export interface TerraLedgerInterface extends Interface {
   encodeFunctionData(
     functionFragment: "addRegistrar",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "approveTransfer",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "cancelTransfer",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -101,6 +114,10 @@ export interface TerraLedgerInterface extends Interface {
     values: [BytesLike, AddressLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "requestTransfer",
+    values: [BigNumberish, AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "revokeRole",
     values: [BytesLike, AddressLike]
   ): string;
@@ -109,8 +126,8 @@ export interface TerraLedgerInterface extends Interface {
     values: [BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [BigNumberish, AddressLike]
+    functionFragment: "transferRequests",
+    values: [BigNumberish]
   ): string;
 
   decodeFunctionResult(
@@ -127,6 +144,14 @@ export interface TerraLedgerInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "addRegistrar",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "approveTransfer",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "cancelTransfer",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -152,13 +177,17 @@ export interface TerraLedgerInterface extends Interface {
     functionFragment: "renounceRole",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "requestTransfer",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "transferOwnership",
+    functionFragment: "transferRequests",
     data: BytesLike
   ): Result;
 }
@@ -271,6 +300,42 @@ export namespace RoleRevokedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
+export namespace TransferApprovedEvent {
+  export type InputTuple = [
+    propertyId: BigNumberish,
+    owner: AddressLike,
+    buyer: AddressLike
+  ];
+  export type OutputTuple = [propertyId: bigint, owner: string, buyer: string];
+  export interface OutputObject {
+    propertyId: bigint;
+    owner: string;
+    buyer: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace TransferRequestedEvent {
+  export type InputTuple = [
+    propertyId: BigNumberish,
+    owner: AddressLike,
+    buyer: AddressLike
+  ];
+  export type OutputTuple = [propertyId: bigint, owner: string, buyer: string];
+  export interface OutputObject {
+    propertyId: bigint;
+    owner: string;
+    buyer: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
 export interface TerraLedger extends BaseContract {
   connect(runner?: ContractRunner | null): TerraLedger;
   waitForDeployment(): Promise<this>;
@@ -322,6 +387,18 @@ export interface TerraLedger extends BaseContract {
 
   addRegistrar: TypedContractMethod<
     [account: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  approveTransfer: TypedContractMethod<
+    [_propertyId: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
+
+  cancelTransfer: TypedContractMethod<
+    [_propertyId: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -380,6 +457,12 @@ export interface TerraLedger extends BaseContract {
     "nonpayable"
   >;
 
+  requestTransfer: TypedContractMethod<
+    [_propertyId: BigNumberish, _buyer: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
   revokeRole: TypedContractMethod<
     [role: BytesLike, account: AddressLike],
     [void],
@@ -392,10 +475,10 @@ export interface TerraLedger extends BaseContract {
     "view"
   >;
 
-  transferOwnership: TypedContractMethod<
-    [_propertyId: BigNumberish, _newOwner: AddressLike],
-    [void],
-    "nonpayable"
+  transferRequests: TypedContractMethod<
+    [arg0: BigNumberish],
+    [[string, boolean] & { buyer: string; pending: boolean }],
+    "view"
   >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
@@ -414,6 +497,12 @@ export interface TerraLedger extends BaseContract {
   getFunction(
     nameOrSignature: "addRegistrar"
   ): TypedContractMethod<[account: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "approveTransfer"
+  ): TypedContractMethod<[_propertyId: BigNumberish], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "cancelTransfer"
+  ): TypedContractMethod<[_propertyId: BigNumberish], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "getRoleAdmin"
   ): TypedContractMethod<[role: BytesLike], [string], "view">;
@@ -473,6 +562,13 @@ export interface TerraLedger extends BaseContract {
     "nonpayable"
   >;
   getFunction(
+    nameOrSignature: "requestTransfer"
+  ): TypedContractMethod<
+    [_propertyId: BigNumberish, _buyer: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
     nameOrSignature: "revokeRole"
   ): TypedContractMethod<
     [role: BytesLike, account: AddressLike],
@@ -483,11 +579,11 @@ export interface TerraLedger extends BaseContract {
     nameOrSignature: "supportsInterface"
   ): TypedContractMethod<[interfaceId: BytesLike], [boolean], "view">;
   getFunction(
-    nameOrSignature: "transferOwnership"
+    nameOrSignature: "transferRequests"
   ): TypedContractMethod<
-    [_propertyId: BigNumberish, _newOwner: AddressLike],
-    [void],
-    "nonpayable"
+    [arg0: BigNumberish],
+    [[string, boolean] & { buyer: string; pending: boolean }],
+    "view"
   >;
 
   getEvent(
@@ -524,6 +620,20 @@ export interface TerraLedger extends BaseContract {
     RoleRevokedEvent.InputTuple,
     RoleRevokedEvent.OutputTuple,
     RoleRevokedEvent.OutputObject
+  >;
+  getEvent(
+    key: "TransferApproved"
+  ): TypedContractEvent<
+    TransferApprovedEvent.InputTuple,
+    TransferApprovedEvent.OutputTuple,
+    TransferApprovedEvent.OutputObject
+  >;
+  getEvent(
+    key: "TransferRequested"
+  ): TypedContractEvent<
+    TransferRequestedEvent.InputTuple,
+    TransferRequestedEvent.OutputTuple,
+    TransferRequestedEvent.OutputObject
   >;
 
   filters: {
@@ -580,6 +690,28 @@ export interface TerraLedger extends BaseContract {
       RoleRevokedEvent.InputTuple,
       RoleRevokedEvent.OutputTuple,
       RoleRevokedEvent.OutputObject
+    >;
+
+    "TransferApproved(uint256,address,address)": TypedContractEvent<
+      TransferApprovedEvent.InputTuple,
+      TransferApprovedEvent.OutputTuple,
+      TransferApprovedEvent.OutputObject
+    >;
+    TransferApproved: TypedContractEvent<
+      TransferApprovedEvent.InputTuple,
+      TransferApprovedEvent.OutputTuple,
+      TransferApprovedEvent.OutputObject
+    >;
+
+    "TransferRequested(uint256,address,address)": TypedContractEvent<
+      TransferRequestedEvent.InputTuple,
+      TransferRequestedEvent.OutputTuple,
+      TransferRequestedEvent.OutputObject
+    >;
+    TransferRequested: TypedContractEvent<
+      TransferRequestedEvent.InputTuple,
+      TransferRequestedEvent.OutputTuple,
+      TransferRequestedEvent.OutputObject
     >;
   };
 }

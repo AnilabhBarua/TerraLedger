@@ -21,7 +21,13 @@ contract TerraLedger is AccessControl {
         bool isRegistered;
     }
 
+    struct TransferRequest {
+        address buyer;
+        bool pending;
+    }
+
     mapping(uint256 => Property) public properties;
+    mapping(uint256 => TransferRequest) public transferRequests;
     uint256 public nextPropertyId = 1;
 
 
@@ -37,6 +43,18 @@ contract TerraLedger is AccessControl {
         uint256 indexed propertyId,
         address indexed oldOwner,
         address indexed newOwner
+    );
+
+    event TransferRequested(
+        uint256 indexed propertyId,
+        address indexed owner,
+        address indexed buyer
+    );
+
+    event TransferApproved(
+        uint256 indexed propertyId,
+        address indexed owner,
+        address indexed buyer
     );
 
     constructor() {
@@ -82,24 +100,54 @@ contract TerraLedger is AccessControl {
 
     
     /**
-     * @dev Allows the current owner of a property to transfer it to a new owner.
-     * @param _propertyId The ID of the property to transfer.
-     * @param _newOwner The address of the new owner.
+     * @dev Allows the current owner to request a transfer to a new buyer.
+     * @param _propertyId The ID of the property.
+     * @param _buyer The address of the new owner/buyer.
      */
-    function transferOwnership(uint256 _propertyId, address _newOwner) external {
-        // Step 1: Create a reference to the property in storage.
+    function requestTransfer(uint256 _propertyId, address _buyer) external {
         Property storage property = properties[_propertyId];
-
-        // Step 2: Perform security checks.
         require(property.isRegistered, "Property does not exist.");
         require(msg.sender == property.owner, "You are not the owner of this property.");
+        require(_buyer != address(0), "Invalid buyer address.");
+        require(_buyer != property.owner, "Cannot transfer to self.");
 
+        transferRequests[_propertyId] = TransferRequest({
+            buyer: _buyer,
+            pending: true
+        });
+
+        emit TransferRequested(_propertyId, msg.sender, _buyer);
+    }
+
+    /**
+     * @dev Allows a registrar to approve a pending transfer request.
+     * @param _propertyId The ID of the property.
+     */
+    function approveTransfer(uint256 _propertyId) external onlyRole(REGISTRAR_ROLE) {
+        TransferRequest storage request = transferRequests[_propertyId];
+        require(request.pending, "No pending transfer request.");
+        
+        Property storage property = properties[_propertyId];
         address oldOwner = property.owner;
+        address newOwner = request.buyer;
 
-        // Step 3: Update the owner.
-        property.owner = _newOwner;
+        property.owner = newOwner;
+        request.pending = false;
 
-        emit OwnershipTransferred(_propertyId, oldOwner, _newOwner);
+        emit TransferApproved(_propertyId, oldOwner, newOwner);
+        emit OwnershipTransferred(_propertyId, oldOwner, newOwner);
+    }
+
+    /**
+     * @dev Allows the owner or a registrar to cancel a pending transfer.
+     * @param _propertyId The ID of the property.
+     */
+    function cancelTransfer(uint256 _propertyId) external {
+        Property storage property = properties[_propertyId];
+        require(msg.sender == property.owner || hasRole(REGISTRAR_ROLE, msg.sender), "Not owner or registrar.");
+        require(transferRequests[_propertyId].pending, "No pending transfer.");
+        
+        transferRequests[_propertyId].pending = false;
     }
     
 }

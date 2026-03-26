@@ -14,36 +14,43 @@ function TransferOwnership() {
   const [errors, setErrors] = useState({});
   const [allProperties, setAllProperties] = useState([]);
   const [userProperties, setUserProperties] = useState([]);
+  const [pendingApprovals, setPendingApprovals] = useState([]);
 
   const currentUserAddress = localStorage.getItem('wallet_user_address') || 'Not Connected';
+  const userIsRegistrar = localStorage.getItem('wallet_is_registrar') === 'true' || localStorage.getItem('wallet_is_admin') === 'true';
+
+  const fetchProps = async () => {
+    if (!window.ethereum) return;
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+    try {
+      const nextId = await contract.nextPropertyId();
+      const props = [];
+      for (let i = 1; i < Number(nextId); i++) {
+        const p = await contract.properties(i);
+        if (p.isRegistered) {
+          const req = await contract.transferRequests(i);
+          props.push({
+            propertyId: Number(p.propertyId),
+            owner: p.owner,
+            location: p.location,
+            area: p.area,
+            type: p.propertyType,
+            registrationDate: new Date(),
+            isPending: req.pending,
+            buyer: req.buyer
+          });
+        }
+      }
+      setAllProperties(props);
+      if (currentUserAddress !== 'Not Connected') {
+        setUserProperties(props.filter(p => p.owner.toLowerCase() === currentUserAddress.toLowerCase()));
+      }
+      setPendingApprovals(props.filter(p => p.isPending));
+    } catch (err) { console.error(err); }
+  };
 
   useEffect(() => {
-    const fetchProps = async () => {
-      if (!window.ethereum) return;
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-      try {
-        const nextId = await contract.nextPropertyId();
-        const props = [];
-        for (let i = 1; i < Number(nextId); i++) {
-          const p = await contract.properties(i);
-          if (p.isRegistered) {
-            props.push({
-              propertyId: Number(p.propertyId),
-              owner: p.owner,
-              location: p.location,
-              area: p.area,
-              type: p.propertyType,
-              registrationDate: new Date()
-            });
-          }
-        }
-        setAllProperties(props);
-        if (currentUserAddress !== 'Not Connected') {
-          setUserProperties(props.filter(p => p.owner.toLowerCase() === currentUserAddress.toLowerCase()));
-        }
-      } catch (err) { console.error(err); }
-    };
     fetchProps();
   }, [currentUserAddress]);
 
@@ -65,15 +72,19 @@ function TransferOwnership() {
       return;
     }
 
-    if (found.owner.toLowerCase() !== currentUserAddress.toLowerCase()) {
-      setErrors({
-        propertyId: `You are not the owner of this property. This belongs to ${found.owner.slice(0, 6)}...${found.owner.slice(-4)}.`
-      });
+    if (found.owner.toLowerCase() !== currentUserAddress.toLowerCase() && !userIsRegistrar) {
+        setErrors({ propertyId: `You are not the owner of this property.` });
       return;
     }
 
     setProperty(found);
-    setStep(2);
+    if (found.isPending && userIsRegistrar) {
+        setStep(4); // Registrar approval view
+    } else if (found.isPending) {
+        setStep(5); // Pending cancellation view for owners
+    } else {
+        setStep(2); // Request transfer view
+    }
   };
 
   const validateTransferForm = () => {
@@ -89,7 +100,7 @@ function TransferOwnership() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleTransfer = async (e) => {
+  const handleRequestTransfer = async (e) => {
     e.preventDefault();
     setErrors({});
     if (!validateTransferForm()) return;
@@ -107,7 +118,7 @@ function TransferOwnership() {
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-      const tx = await contract.transferOwnership(property.propertyId, newOwner);
+      const tx = await contract.requestTransfer(property.propertyId, newOwner);
       const receipt = await tx.wait();
 
       setTransactionData({
@@ -116,16 +127,78 @@ function TransferOwnership() {
         timestamp: new Date().toISOString(),
         from: property.owner,
         to: newOwner,
-        gasUsed: receipt.gasUsed.toString(),
-        gasPrice: ethers.formatUnits(receipt.gasPrice || tx.gasPrice || 0, 'gwei') + ' Gwei'
+        status: 'Transfer Requested'
       });
       setSuccess(true);
+      fetchProps(); // Refresh list automatically
     } catch (error) {
       console.error(error);
       setErrors({ newOwner: error.reason || error.message || "Transaction failed" });
       setStep(2);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const handleApproveTransfer = async () => {
+    if (!window.ethereum) return;
+    setLoading(true);
+    setStep(3);
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+      const tx = await contract.approveTransfer(property.propertyId);
+      const receipt = await tx.wait();
+      
+      setTransactionData({
+        hash: tx.hash,
+        blockNumber: receipt.blockNumber,
+        timestamp: new Date().toISOString(),
+        from: property.owner,
+        to: property.buyer,
+        status: 'Transfer Approved'
+      });
+      setSuccess(true);
+      fetchProps(); // Refresh list automatically
+    } catch (error) {
+      console.error(error);
+      setErrors({ generic: error.reason || error.message || "Transaction failed" });
+      setStep(4);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCancelTransfer = async () => {
+    if (!window.ethereum) return;
+    setLoading(true);
+    setStep(3); // reusing processing UI
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+      const tx = await contract.cancelTransfer(property.propertyId);
+      const receipt = await tx.wait();
+      
+      setTransactionData({
+        hash: tx.hash,
+        blockNumber: receipt.blockNumber,
+        timestamp: new Date().toISOString(),
+        from: property.owner,
+        to: property.buyer,
+        status: 'Transfer Cancelled'
+      });
+      setSuccess(true);
+      fetchProps();
+    } catch (error) {
+        console.error(error);
+        setErrors({ generic: error.reason || error.message || "Transaction failed" });
+        setStep(5); // Return to owner cancellation view
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -139,41 +212,74 @@ function TransferOwnership() {
     setErrors({});
   };
 
+  // Helper renderer
+  const renderTransactionSuccess = () => (
+    <div className="success-container">
+        <div className="success-icon">✓</div>
+        <h2>{transactionData.status}!</h2>
+        <p>This action has been successfully processed on the blockchain</p>
+
+        <div className="transaction-details">
+            <h3>Transaction Details</h3>
+            <div className="detail-row">
+            <span className="detail-label">Transaction Hash:</span>
+            <span className="detail-value hash">{transactionData.hash}</span>
+            </div>
+            <div className="detail-row">
+            <span className="detail-label">Block Number:</span>
+            <span className="detail-value">{transactionData.blockNumber?.toLocaleString()}</span>
+            </div>
+            <div className="detail-row">
+            <span className="detail-label">From:</span>
+            <span className="detail-value hash">{transactionData.from}</span>
+            </div>
+            <div className="detail-row">
+            <span className="detail-label">Pending Buyer:</span>
+            <span className="detail-value hash">{transactionData.to}</span>
+            </div>
+        </div>
+
+        <button onClick={resetForm} className="reset-button">
+            Return to Dashboard
+        </button>
+    </div>
+  );
+
   return (
     <div className="transfer-page">
       <div className="transfer-container">
         <div className="transfer-header">
           <div className="header-icon">🔄</div>
-          <h1>Ownership Transfer</h1>
-          <p>Securely transfer property ownership with blockchain verification</p>
+          <h1>Ownership Transfers</h1>
+          <p>Secure multi-step workflow for property transfers. Owners request, Registrars approve.</p>
           <div className="current-user-info">
             <span className="user-label">Connected as:</span>
             <code>{currentUserAddress !== 'Not Connected' ? `${currentUserAddress.slice(0, 6)}...${currentUserAddress.slice(-4)}` : 'Not Connected'}</code>
           </div>
         </div>
 
-        <div className="steps-indicator">
-          <div className={`step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
-            <div className="step-number">1</div>
-            <div className="step-label">Select Property</div>
-          </div>
-          <div className="step-connector"></div>
-          <div className={`step ${step >= 2 ? 'active' : ''} ${step > 2 ? 'completed' : ''}`}>
-            <div className="step-number">2</div>
-            <div className="step-label">Enter New Owner</div>
-          </div>
-          <div className="step-connector"></div>
-          <div className={`step ${step >= 3 ? 'active' : ''} ${success ? 'completed' : ''}`}>
-            <div className="step-number">3</div>
-            <div className="step-label">Confirm Transfer</div>
-          </div>
-        </div>
+        {(step === 1 || step === 2) && (
+            <div className="steps-indicator">
+            <div className={`step ${step >= 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
+                <div className="step-number">1</div>
+                <div className="step-label">Select Property</div>
+            </div>
+            <div className="step-connector"></div>
+            <div className={`step ${step >= 2 ? 'active' : ''} ${step > 2 ? 'completed' : ''}`}>
+                <div className="step-number">2</div>
+                <div className="step-label">Request Transfer</div>
+            </div>
+            <div className="step-connector"></div>
+            <div className={`step ${step >= 3 ? 'active' : ''} ${success ? 'completed' : ''}`}>
+                <div className="step-number">3</div>
+                <div className="step-label">Await Approval</div>
+            </div>
+            </div>
+        )}
 
         {step === 1 && (
           <div className="step-content">
-            <h2>Step 1: Select Property</h2>
-            <p>Enter the Property ID you wish to transfer (you must be the owner)</p>
-
+            <h2>Select Property</h2>
             <div className="input-group">
               <input
                 type="number"
@@ -184,7 +290,7 @@ function TransferOwnership() {
                 className={errors.propertyId ? 'input-error' : ''}
               />
               <button onClick={handlePropertyLookup} disabled={!propertyId}>
-                Lookup Property
+                Lookup
               </button>
             </div>
             {errors.propertyId && (
@@ -194,30 +300,52 @@ function TransferOwnership() {
               </div>
             )}
 
+            {userIsRegistrar && (
+                <div className="all-properties-section" style={{ marginTop: '2rem'}}>
+                    <h3>Pending Approvals (Registrar View) <span className="badge">{pendingApprovals.length}</span></h3>
+                    {pendingApprovals.length === 0 ? (
+                        <p style={{background: '#f8f9fa', padding: '1rem', borderRadius: '8px'}}>No transfers currently pending approval.</p>
+                    ) : (
+                        <div className="properties-grid">
+                            {pendingApprovals.map(prop => (
+                                <div key={prop.propertyId} className="property-item pending-approval" 
+                                    onClick={() => { setPropertyId(prop.propertyId.toString()); setProperty(prop); setStep(4); }}>
+                                    <div className="property-id-badge">ID: {prop.propertyId}</div>
+                                    <div className="approval-badge">Needs Approval</div>
+                                    <div className="property-location">{prop.location}</div>
+                                    <div className="property-details">
+                                        <span>From: {prop.owner.slice(0,6)}...</span>
+                                        <span>To: {prop.buyer.slice(0,6)}...</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
             <div className="property-list">
-              <h3>Your Properties ({userProperties.length})</h3>
+              <h3>Your Properties</h3>
               {userProperties.length === 0 ? (
                 <div className="no-properties">
                   <p>You don't own any properties.</p>
-                  <p className="hint">
-                    Please register a property from the Registration Page first.
-                  </p>
                 </div>
               ) : (
                 <div className="properties-grid">
                   {userProperties.map(prop => (
                     <div
                       key={prop.propertyId}
-                      className="property-item owned"
+                      className={`property-item owned ${prop.isPending ? 'is-pending' : ''}`}
                       onClick={() => {
                         setPropertyId(prop.propertyId.toString());
                         setProperty(prop);
                         setErrors({});
-                        setStep(2);
+                        if (prop.isPending) setStep(5);
+                        else setStep(2);
                       }}
                     >
                       <div className="property-id-badge">ID: {prop.propertyId}</div>
-                      <div className="owned-badge">You Own This</div>
+                      <div className="owned-badge">{prop.isPending ? 'Transfer Pending' : 'Owned'}</div>
                       <div className="property-location">{prop.location}</div>
                       <div className="property-details">
                         <span>{prop.type}</span>
@@ -228,100 +356,85 @@ function TransferOwnership() {
                 </div>
               )}
             </div>
-
-            {userProperties.length > 0 && (
-              <div className="all-properties-section">
-                <h3>All Registered Properties</h3>
-                <div className="properties-grid">
-                  {allProperties.filter(p => !userProperties.find(u => u.propertyId === p.propertyId)).map(prop => (
-                    <div
-                      key={prop.propertyId}
-                      className="property-item not-owned"
-                      onClick={() => {
-                        setPropertyId(prop.propertyId.toString());
-                        setErrors({
-                          propertyId: `You are not the owner of this property. This belongs to ${prop.owner.slice(0, 6)}...${prop.owner.slice(-4)}.`
-                        });
-                      }}
-                    >
-                      <div className="property-id-badge">ID: {prop.propertyId}</div>
-                      <div className="not-owned-badge">Not Your Property</div>
-                      <div className="property-location">{prop.location}</div>
-                      <div className="property-details">
-                        <span>{prop.type}</span>
-                        <span>Owner: {prop.owner.slice(0, 4)}...{prop.owner.slice(-4)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
         {step === 2 && property && (
           <div className="step-content">
-            <h2>Step 2: Transfer Details</h2>
-            <p>Review property details and enter the new owner's address</p>
+            <h2>Request Transfer</h2>
+            <p>Initiate a transfer request. This will require Registrar approval.</p>
 
             <div className="current-property">
-              <h3>Current Property Details</h3>
               <div className="property-info-grid">
-                <div className="info-item">
-                  <span className="info-label">Property ID</span>
-                  <span className="info-value">{property.propertyId}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Location</span>
-                  <span className="info-value">{property.location}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Current Owner</span>
-                  <span className="info-value hash">{property.owner}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Type</span>
-                  <span className="info-value">{property.type}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Area</span>
-                  <span className="info-value">{property.area}</span>
-                </div>
-                <div className="info-item">
-                  <span className="info-label">Registered</span>
-                  <span className="info-value">{new Date(property.registrationDate).toLocaleDateString()}</span>
-                </div>
+                <div className="info-item"><span className="info-label">Property ID</span><span className="info-value">{property.propertyId}</span></div>
+                <div className="info-item"><span className="info-label">Location</span><span className="info-value">{property.location}</span></div>
+                <div className="info-item"><span className="info-label">Current Owner</span><span className="info-value hash">{property.owner}</span></div>
               </div>
             </div>
 
-            <form onSubmit={handleTransfer} className="transfer-form">
+            <form onSubmit={handleRequestTransfer} className="transfer-form">
               <div className="form-group">
                 <label>
-                  New Owner Address <span className="required">*</span>
-                  <span className="field-hint">Valid Ethereum address (0x...)</span>
+                  New Owner / Buyer Address <span className="required">*</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+                  placeholder="0x..."
                   value={newOwner}
                   onChange={(e) => setNewOwner(e.target.value)}
                   className={errors.newOwner ? 'input-error' : ''}
                 />
-                {errors.newOwner && (
-                  <span className="error-message">{errors.newOwner}</span>
-                )}
+                {errors.newOwner && <span className="error-message">{errors.newOwner}</span>}
               </div>
 
               <div className="button-group">
-                <button type="button" onClick={() => { setStep(1); setErrors({}); }} className="back-button">
-                  Back
-                </button>
-                <button type="submit" className="submit-button">
-                  Transfer Ownership
-                </button>
+                <button type="button" onClick={() => setStep(1)} className="back-button">Cancel</button>
+                <button type="submit" className="submit-button">Submit Request</button>
               </div>
             </form>
           </div>
+        )}
+
+        {step === 4 && property && userIsRegistrar && (
+          <div className="step-content registrar-view">
+             <h2>Review Transfer Request</h2>
+             {errors.generic && <div className="error-message-box" style={{marginBottom:'1rem'}}>{errors.generic}</div>}
+             <div className="current-property pending">
+              <h3>Transfer Details</h3>
+              <div className="property-info-grid">
+                <div className="info-item"><span className="info-label">Property ID</span><span className="info-value">{property.propertyId}</span></div>
+                <div className="info-item"><span className="info-label">Location</span><span className="info-value">{property.location}</span></div>
+                <div className="info-item"><span className="info-label">Current Owner</span><span className="info-value hash">{property.owner}</span></div>
+                <div className="info-item"><span className="info-label">Requested Buyer</span><span className="info-value hash" style={{color: '#e74c3c'}}>{property.buyer}</span></div>
+              </div>
+             </div>
+
+             <div className="button-group" style={{marginTop: '2rem'}}>
+                <button type="button" onClick={() => setStep(1)} className="back-button">Back</button>
+                <button type="button" onClick={handleCancelTransfer} className="back-button" style={{background: '#ffebee', color: '#e74c3c'}}>Reject Request</button>
+                <button type="button" onClick={handleApproveTransfer} className="submit-button" style={{background: '#2ecc71'}}>Approve Transfer</button>
+             </div>
+          </div>
+        )}
+
+        {step === 5 && property && !userIsRegistrar && (
+            <div className="step-content owner-cancel-view">
+                <h2>Pending Transfer</h2>
+                <p>You have already requested a transfer for this property. It is currently awaiting Registrar approval.</p>
+                {errors.generic && <div className="error-message-box" style={{marginBottom:'1rem'}}>{errors.generic}</div>}
+                
+                <div className="current-property pending">
+                <div className="property-info-grid">
+                    <div className="info-item"><span className="info-label">Property ID</span><span className="info-value">{property.propertyId}</span></div>
+                    <div className="info-item"><span className="info-label">Requested Buyer</span><span className="info-value hash">{property.buyer}</span></div>
+                </div>
+                </div>
+
+                <div className="button-group" style={{marginTop: '2rem'}}>
+                    <button type="button" onClick={() => setStep(1)} className="back-button">Back</button>
+                    <button type="button" onClick={handleCancelTransfer} className="back-button" style={{background: '#ffebee', color: '#e74c3c'}}>Cancel Transfer Request</button>
+                </div>
+            </div>
         )}
 
         {step === 3 && (
@@ -330,77 +443,11 @@ function TransferOwnership() {
               <div className="processing-container">
                 <div className="processing-spinner"></div>
                 <h2>Processing Transaction...</h2>
-                <p>Your ownership transfer is being recorded on the blockchain</p>
-                <div className="loading-steps">
-                  <div className="loading-step">Verifying ownership...</div>
-                  <div className="loading-step">Signing transaction...</div>
-                  <div className="loading-step">Broadcasting to network...</div>
-                  <div className="loading-step">Waiting for confirmation...</div>
-                </div>
+                <p>Please confirm the transaction in your wallet and wait for it to be mined.</p>
               </div>
-            ) : (
-              <div className="success-container">
-                <div className="success-icon">✓</div>
-                <h2>Transfer Successful!</h2>
-                <p>Property ownership has been transferred successfully</p>
-
-                <div className="transaction-details">
-                  <h3>Transaction Details</h3>
-                  <div className="detail-row">
-                    <span className="detail-label">Transaction Hash:</span>
-                    <span className="detail-value hash">{transactionData.hash}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Block Number:</span>
-                    <span className="detail-value">{transactionData.blockNumber.toLocaleString()}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">From:</span>
-                    <span className="detail-value hash">{transactionData.from}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">To:</span>
-                    <span className="detail-value hash">{transactionData.to}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Gas Used:</span>
-                    <span className="detail-value">{transactionData.gasUsed}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-label">Gas Price:</span>
-                    <span className="detail-value">{transactionData.gasPrice}</span>
-                  </div>
-                </div>
-
-                <button onClick={resetForm} className="reset-button">
-                  Transfer Another Property
-                </button>
-              </div>
-            )}
+            ) : renderTransactionSuccess()}
           </div>
         )}
-
-        <div className="security-notice">
-          <h3>🔒 Secure Transfer Process</h3>
-          <div className="security-features">
-            <div className="security-item">
-              <span className="check">✓</span>
-              <p>Cryptographic signature verification</p>
-            </div>
-            <div className="security-item">
-              <span className="check">✓</span>
-              <p>Ownership validation before transfer</p>
-            </div>
-            <div className="security-item">
-              <span className="check">✓</span>
-              <p>Permanent blockchain record</p>
-            </div>
-            <div className="security-item">
-              <span className="check">✓</span>
-              <p>Instant global verification</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
