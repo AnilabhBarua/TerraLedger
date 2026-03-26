@@ -69,12 +69,8 @@ function WalletAuth() {
         console.warn("Could not verify admin status (contract may not be deployed on this network):", err);
       }
 
-      let roleName = 'Property Owner';
-      if (isAdmin) roleName = 'Platform Admin';
-      else if (isRegistrar) roleName = 'Registrar';
-
       setCurrentUser({
-        name: roleName,
+        name: 'Web3 Citizen',
         address: address,
         balance: parseFloat(balanceEth).toFixed(4) + ' ETH',
         network: network.name === 'unknown' ? 'Localhost' : network.name,
@@ -224,8 +220,12 @@ function WalletAuth() {
                   <div className="detail-value">{currentUser.network}</div>
                 </div>
                 <div className="detail-card">
-                  <div className="detail-label">Account Type</div>
-                  <div className="detail-value">{currentUser.name}</div>
+                  <div className="detail-label">Assigned Role(s)</div>
+                  <div className="detail-value">
+                    {currentUser.isAdmin && <span className="role-badge admin">👑 Chief Authority</span>}
+                    {currentUser.isRegistrar && !currentUser.isAdmin && <span className="role-badge registrar">📋 Land Registrar</span>}
+                    {!currentUser.isAdmin && !currentUser.isRegistrar && <span className="role-badge user">👤 Property Owner</span>}
+                  </div>
                 </div>
                 <div className="detail-card">
                   <div className="detail-label">Status</div>
@@ -234,27 +234,38 @@ function WalletAuth() {
               </div>
 
               <div className="permissions">
-                <h3>Granted Permissions</h3>
+                <h3>Role Permissions</h3>
                 <div className="permission-list">
-                  <div className="permission-item">
-                    <span className="permission-icon">✓</span>
-                    <div>
-                      <div className="permission-name">Property Registration</div>
-                      <div className="permission-desc">Create new property records</div>
+                  {(currentUser.isAdmin || currentUser.isRegistrar) && (
+                    <div className="permission-item">
+                      <span className="permission-icon">✓</span>
+                      <div>
+                        <div className="permission-name">Property Registration</div>
+                        <div className="permission-desc">Authorized to mint new land titles</div>
+                      </div>
                     </div>
-                  </div>
+                  )}
+                  {currentUser.isAdmin && (
+                    <div className="permission-item">
+                      <span className="permission-icon">✓</span>
+                      <div>
+                        <div className="permission-name">Role Management</div>
+                        <div className="permission-desc">Can assign or revoke Registrar privileges</div>
+                      </div>
+                    </div>
+                  )}
                   <div className="permission-item">
                     <span className="permission-icon">✓</span>
                     <div>
                       <div className="permission-name">Ownership Transfer</div>
-                      <div className="permission-desc">Transfer property ownership</div>
+                      <div className="permission-desc">Transfer property ownership (if owned)</div>
                     </div>
                   </div>
                   <div className="permission-item">
                     <span className="permission-icon">✓</span>
                     <div>
                       <div className="permission-name">Record Verification</div>
-                      <div className="permission-desc">Verify and audit property records</div>
+                      <div className="permission-desc">Verify and audit public property records</div>
                     </div>
                   </div>
                 </div>
