@@ -29,14 +29,22 @@ function WalletAuth() {
     checkConnection();
 
     if (window.ethereum) {
-      window.ethereum.on('accountsChanged', (accounts) => {
+      const handleAccountsChanged = (accounts) => {
         if (accounts.length > 0) {
           loadUserData(accounts[0]);
         } else {
           handleDisconnect();
         }
-      });
-      window.ethereum.on('chainChanged', () => window.location.reload());
+      };
+      const handleChainChanged = () => window.location.reload();
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+
+      return () => {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+      };
     }
   }, []);
 
@@ -48,8 +56,14 @@ function WalletAuth() {
       const balanceEth = ethers.formatEther(balanceWei);
       
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-      const ownerAddress = await contract.owner();
-      const isAdmin = ownerAddress.toLowerCase() === address.toLowerCase();
+      
+      let isAdmin = false;
+      try {
+        const ownerAddress = await contract.owner();
+        isAdmin = ownerAddress.toLowerCase() === address.toLowerCase();
+      } catch (err) {
+        console.warn("Could not verify admin status (contract may not be deployed on this network):", err);
+      }
 
       setCurrentUser({
         name: isAdmin ? 'Platform Admin' : 'Property Owner',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
@@ -11,6 +11,28 @@ import WalletAuth from './pages/WalletAuth';
 import './App.css';
 
 function App() {
+  useEffect(() => {
+    if (window.ethereum) {
+      const handleAccountsChanged = (accounts) => {
+        if (accounts.length > 0) {
+          localStorage.setItem('wallet_user_address', accounts[0]);
+          window.dispatchEvent(new Event('storage'));
+        } else {
+          localStorage.removeItem('wallet_connected');
+          localStorage.removeItem('wallet_user_address');
+          localStorage.removeItem('wallet_is_admin');
+          window.dispatchEvent(new Event('storage'));
+        }
+      };
+
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+
+      return () => {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+      };
+    }
+  }, []);
+
   return (
     <Router>
       <div className="app">
