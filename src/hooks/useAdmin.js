@@ -6,6 +6,7 @@ import { CONTRACT_ADDRESS, CONTRACT_ABI } from "../contractConfig";
 export default function useAdmin() {
   const [account, setAccount] = useState(null);
   const [isAdmin, setIsAdmin] = useState(null);
+  const [isRegistrar, setIsRegistrar] = useState(null);
   const [contract, setContract] = useState(null);
 
   const checkAdmin = useCallback(async () => {
@@ -30,14 +31,18 @@ export default function useAdmin() {
       );
       setContract(contractInstance);
 
-      const owner = await contractInstance.owner();
+      const authorityRole = await contractInstance.AUTHORITY_ROLE();
+      const registrarRole = await contractInstance.REGISTRAR_ROLE();
+      
+      const hasAuthority = await contractInstance.hasRole(authorityRole, userAddress);
+      const hasRegistrar = await contractInstance.hasRole(registrarRole, userAddress);
 
-      setIsAdmin(
-        userAddress.toLowerCase() === owner.toLowerCase()
-      );
+      setIsAdmin(hasAuthority);
+      setIsRegistrar(hasRegistrar);
     } catch (err) {
       console.error("Admin check failed:", err);
       setIsAdmin(false);
+      setIsRegistrar(false);
     }
   }, []);
 
@@ -53,5 +58,5 @@ export default function useAdmin() {
     };
   }, [checkAdmin]);
 
-  return { account, isAdmin, contract, refresh: checkAdmin };
+  return { account, isAdmin, isRegistrar, contract, refresh: checkAdmin };
 }

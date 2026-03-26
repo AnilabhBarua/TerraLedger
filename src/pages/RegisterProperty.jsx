@@ -14,6 +14,8 @@ function RegisterProperty() {
   const [errors, setErrors] = useState({});
 
   const userIsAdmin = localStorage.getItem('wallet_is_admin') === 'true';
+  const userIsRegistrar = localStorage.getItem('wallet_is_registrar') === 'true';
+  const canRegister = userIsAdmin || userIsRegistrar;
   const currentUserAddress = localStorage.getItem('wallet_user_address') || 'Not Connected';
 
   // Simple validation for ethereum address
@@ -99,21 +101,21 @@ function RegisterProperty() {
     }
   };
 
-  // If user is not admin, show access denied
-  if (!userIsAdmin) {
+  // If user is not admin or registrar, show access denied
+  if (!canRegister) {
     return (
       <div className="register-page">
         <div className="register-container">
           <div className="access-denied">
             <div className="denied-icon">🚫</div>
             <h1>Access Denied</h1>
-            <p>Only the contract administrator can register new properties.</p>
+            <p>Only authorized Registrars can register new properties.</p>
             <div className="admin-info">
               <p><strong>Your Address:</strong></p>
               <code>{currentUserAddress}</code>
             </div>
             <p className="hint">
-              Please connect to MetaMask using the deployer wallet (Admin) to access this page.
+              Please connect to MetaMask using an authorized wallet to access this page.
             </p>
           </div>
         </div>
@@ -129,8 +131,8 @@ function RegisterProperty() {
           <h1>Property Registration</h1>
           <p>Register a new property on the blockchain with permanent, immutable records</p>
           <div className="admin-badge">
-            <span className="badge-icon">👑</span>
-            <span>Admin Mode</span>
+            <span className="badge-icon">{userIsAdmin ? '👑' : '📋'}</span>
+            <span>{userIsAdmin ? 'Admin Mode' : 'Registrar Mode'}</span>
           </div>
         </div>
 

@@ -6,10 +6,13 @@ function Navbar() {
   const location = useLocation();
   const [walletAddress, setWalletAddress] = useState(localStorage.getItem('wallet_user_address'));
 
+  const [userIsAdmin, setUserIsAdmin] = useState(localStorage.getItem('wallet_is_admin') === 'true');
+
   useEffect(() => {
     // Simple polling to catch localStorage updates since 'storage' event only fires across tabs
     const interval = setInterval(() => {
       setWalletAddress(localStorage.getItem('wallet_user_address'));
+      setUserIsAdmin(localStorage.getItem('wallet_is_admin') === 'true');
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -45,6 +48,11 @@ function Navbar() {
           <Link to="/transactions" className={`nav-link ${isActive('/transactions') ? 'active' : ''}`}>
             Transactions
           </Link>
+          {userIsAdmin && (
+            <Link to="/roles" className={`nav-link ${isActive('/roles') ? 'active' : ''}`}>
+              Roles
+            </Link>
+          )}
         </div>
 
         <div className="navbar-right">

@@ -11,7 +11,8 @@ function WalletAuth() {
     address: '',
     balance: '0 ETH',
     network: 'Unknown',
-    isAdmin: false
+    isAdmin: false,
+    isRegistrar: false
   });
 
   useEffect(() => {
@@ -58,25 +59,34 @@ function WalletAuth() {
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
       
       let isAdmin = false;
+      let isRegistrar = false;
       try {
-        const ownerAddress = await contract.owner();
-        isAdmin = ownerAddress.toLowerCase() === address.toLowerCase();
+        const authorityRole = await contract.AUTHORITY_ROLE();
+        const registrarRole = await contract.REGISTRAR_ROLE();
+        isAdmin = await contract.hasRole(authorityRole, address);
+        isRegistrar = await contract.hasRole(registrarRole, address);
       } catch (err) {
         console.warn("Could not verify admin status (contract may not be deployed on this network):", err);
       }
 
+      let roleName = 'Property Owner';
+      if (isAdmin) roleName = 'Platform Admin';
+      else if (isRegistrar) roleName = 'Registrar';
+
       setCurrentUser({
-        name: isAdmin ? 'Platform Admin' : 'Property Owner',
+        name: roleName,
         address: address,
         balance: parseFloat(balanceEth).toFixed(4) + ' ETH',
         network: network.name === 'unknown' ? 'Localhost' : network.name,
-        isAdmin: isAdmin
+        isAdmin: isAdmin,
+        isRegistrar: isRegistrar
       });
 
       setConnected(true);
       localStorage.setItem('wallet_connected', 'true');
       localStorage.setItem('wallet_user_address', address);
       localStorage.setItem('wallet_is_admin', isAdmin.toString());
+      localStorage.setItem('wallet_is_registrar', isRegistrar.toString());
     } catch (error) {
       console.error("Error loading data:", error);
     }
@@ -103,6 +113,7 @@ function WalletAuth() {
     localStorage.removeItem('wallet_connected');
     localStorage.removeItem('wallet_user_address');
     localStorage.removeItem('wallet_is_admin');
+    localStorage.removeItem('wallet_is_registrar');
   };
 
   return (
@@ -214,7 +225,7 @@ function WalletAuth() {
                 </div>
                 <div className="detail-card">
                   <div className="detail-label">Account Type</div>
-                  <div className="detail-value">{currentUser.isAdmin ? 'Admin' : 'Standard'}</div>
+                  <div className="detail-value">{currentUser.name}</div>
                 </div>
                 <div className="detail-card">
                   <div className="detail-label">Status</div>

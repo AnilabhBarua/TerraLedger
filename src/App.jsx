@@ -8,6 +8,7 @@ import ImmutableRecords from './pages/ImmutableRecords';
 import PropertySearch from './pages/PropertySearch';
 import TransactionHistory from './pages/TransactionHistory';
 import WalletAuth from './pages/WalletAuth';
+import RoleManager from './pages/RoleManager';
 import './App.css';
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
           <Route path="/search" element={<PropertySearch />} />
           <Route path="/transactions" element={<TransactionHistory />} />
           <Route path="/wallet" element={<WalletAuth />} />
+          <Route path="/roles" element={<RoleManager />} />
         </Routes>
       </div>
     </Router>

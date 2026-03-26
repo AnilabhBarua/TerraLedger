@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
+import "@openzeppelin/contracts/access/AccessControl.sol";
+
 /**
  * @title TerraLedger
  * @dev A smart contract for a decentralized land registry.
  */
-contract TerraLedger {
+contract TerraLedger is AccessControl {
+
+    bytes32 public constant AUTHORITY_ROLE = keccak256("AUTHORITY_ROLE");
+    bytes32 public constant REGISTRAR_ROLE = keccak256("REGISTRAR_ROLE");
 
     struct Property {
         uint256 propertyId;
@@ -19,7 +24,6 @@ contract TerraLedger {
     mapping(uint256 => Property) public properties;
     uint256 public nextPropertyId = 1;
 
-    address public owner;
 
     event PropertyRegistered(
         uint256 indexed propertyId,
@@ -36,7 +40,17 @@ contract TerraLedger {
     );
 
     constructor() {
-        owner = msg.sender;
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(AUTHORITY_ROLE, msg.sender);
+        _grantRole(REGISTRAR_ROLE, msg.sender);
+    }
+
+    function addRegistrar(address account) external onlyRole(AUTHORITY_ROLE) {
+        grantRole(REGISTRAR_ROLE, account);
+    }
+
+    function removeRegistrar(address account) external onlyRole(AUTHORITY_ROLE) {
+        revokeRole(REGISTRAR_ROLE, account);
     }
 
     function registerProperty(
@@ -44,8 +58,7 @@ contract TerraLedger {
         string memory _location, 
         string memory _area, 
         string memory _propertyType
-    ) external {
-        require(msg.sender == owner, "Only the contract owner can register new properties");
+    ) external onlyRole(REGISTRAR_ROLE) {
         uint256 newPropertyId = nextPropertyId;
         properties[newPropertyId] = Property(
             newPropertyId,
