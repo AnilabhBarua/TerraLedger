@@ -1,9 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ethers } from 'ethers';
+import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
 import './Dashboard.css';
 
 function Dashboard() {
   const navigate = useNavigate();
+
+  const [stats, setStats] = useState({
+    properties: '...',
+    transfers: '...',
+    security: '100%'
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        if (window.ethereum) {
+          const provider = new ethers.BrowserProvider(window.ethereum);
+          const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+          
+          const nextId = await contract.nextPropertyId();
+          const registered = Number(nextId) > 0 ? Number(nextId) - 1 : 0;
+          
+          const filter = contract.filters.OwnershipTransferred();
+          const logs = await contract.queryFilter(filter, 0, 'latest');
+          
+          setStats({
+            properties: registered.toString(),
+            transfers: logs.length.toString(),
+            security: '100%'
+          });
+        }
+      } catch (err) {
+        console.error("Dashboard stats error:", err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const features = [
     {
@@ -73,15 +107,15 @@ function Dashboard() {
 
         <div className="hero-stats">
           <div className="stat-card">
-            <div className="stat-value">1,234</div>
+            <div className="stat-value">{stats.properties}</div>
             <div className="stat-label">Properties Registered</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value">567</div>
+            <div className="stat-value">{stats.transfers}</div>
             <div className="stat-label">Transfers Completed</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value">100%</div>
+            <div className="stat-value">{stats.security}</div>
             <div className="stat-label">Secure & Verified</div>
           </div>
         </div>
