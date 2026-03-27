@@ -139,7 +139,7 @@ contract TerraLedger is AccessControl {
     }
 
     /**
-     * @dev Allows the owner or a registrar to cancel a pending transfer.
+     * @dev Allows the owner or a registrar to cancel a pending transfer testtt.
      * @param _propertyId The ID of the property.
      */
     function cancelTransfer(uint256 _propertyId) external {
