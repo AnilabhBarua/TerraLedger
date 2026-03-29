@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
+import { uploadToPinata } from '../utils/pinata';
 import './RegisterProperty.css';
 
 function RegisterProperty() {
@@ -8,7 +9,9 @@ function RegisterProperty() {
   const [location, setLocation] = useState('');
   const [area, setArea] = useState('');
   const [propertyType, setPropertyType] = useState('Residential');
+  const [documentFile, setDocumentFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState('');
   const [success, setSuccess] = useState(false);
   const [transactionData, setTransactionData] = useState(null);
   const [errors, setErrors] = useState({});
@@ -18,30 +21,25 @@ function RegisterProperty() {
   const canRegister = userIsAdmin || userIsRegistrar;
   const currentUserAddress = localStorage.getItem('wallet_user_address') || 'Not Connected';
 
-  // Simple validation for ethereum address
   const isValidEthereumAddress = (address) => {
     return /^0x[a-fA-F0-9]{40}$/.test(address);
   };
 
-  // Validate all form inputs
   const validateForm = () => {
     const newErrors = {};
 
-    // Validate Owner Address
     if (!ownerAddress.trim()) {
       newErrors.ownerAddress = 'Owner address is required.';
     } else if (!isValidEthereumAddress(ownerAddress)) {
       newErrors.ownerAddress = 'Invalid Ethereum address. Must start with 0x followed by 40 hex characters.';
     }
 
-    // Validate Location
     if (!location.trim()) {
       newErrors.location = 'Property location is required.';
     } else if (location.trim().length < 10) {
       newErrors.location = 'Location must be at least 10 characters long.';
     }
 
-    // Validate Area
     if (!area.trim()) {
       newErrors.area = 'Property area is required.';
     }
@@ -50,16 +48,44 @@ function RegisterProperty() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        setErrors(prev => ({ ...prev, document: 'File size must be under 10MB.' }));
+        setDocumentFile(null);
+        return;
+      }
+      setErrors(prev => { const { document, ...rest } = prev; return rest; });
+      setDocumentFile(file);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const maxSize = 10 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setErrors(prev => ({ ...prev, document: 'File size must be under 10MB.' }));
+        setDocumentFile(null);
+        return;
+      }
+      setErrors(prev => { const { document, ...rest } = prev; return rest; });
+      setDocumentFile(file);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Clear previous errors
     setErrors({});
 
-    // Validate form
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     if (!window.ethereum) {
       setErrors({ submit: "MetaMask is not installed" });
@@ -70,11 +96,31 @@ function RegisterProperty() {
     setSuccess(false);
 
     try {
+      let documentHash = '';
+
+      // Step 1: Upload document to IPFS if a file is attached
+      if (documentFile) {
+        setUploadStatus('Uploading document to IPFS...');
+        try {
+          const result = await uploadToPinata(documentFile);
+          documentHash = result.ipfsHash;
+          setUploadStatus(`Uploaded! CID: ${documentHash.slice(0, 12)}...`);
+        } catch (uploadErr) {
+          console.error('IPFS Upload Error:', uploadErr);
+          setErrors({ document: uploadErr.message || 'Failed to upload document to IPFS.' });
+          setLoading(false);
+          setUploadStatus('');
+          return;
+        }
+      }
+
+      // Step 2: Register property on-chain
+      setUploadStatus(documentFile ? 'Recording on blockchain...' : '');
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-      const tx = await contract.registerProperty(ownerAddress, location, area, propertyType);
+      const tx = await contract.registerProperty(ownerAddress, location, area, propertyType, documentHash);
       const receipt = await tx.wait();
 
       setTransactionData({
@@ -82,23 +128,32 @@ function RegisterProperty() {
         blockNumber: receipt.blockNumber,
         timestamp: new Date().toISOString(),
         gasUsed: receipt.gasUsed.toString(),
-        gasPrice: ethers.formatUnits(receipt.gasPrice || tx.gasPrice || 0, 'gwei') + ' Gwei'
+        gasPrice: ethers.formatUnits(receipt.gasPrice || tx.gasPrice || 0, 'gwei') + ' Gwei',
+        documentHash: documentHash,
+        documentUrl: documentHash ? `https://gateway.pinata.cloud/ipfs/${documentHash}` : null
       });
 
       setSuccess(true);
-      setTimeout(() => {
-        setOwnerAddress('');
-        setLocation('');
-        setArea('');
-        setSuccess(false);
-        setTransactionData(null);
-      }, 10000);
+      setUploadStatus('');
     } catch (error) {
       console.error("Transaction Error:", error);
       setErrors({ submit: error.reason || error.message || "Transaction failed" });
+      setUploadStatus('');
     } finally {
       setLoading(false);
     }
+  };
+
+  const resetForm = () => {
+    setOwnerAddress('');
+    setLocation('');
+    setArea('');
+    setPropertyType('Residential');
+    setDocumentFile(null);
+    setSuccess(false);
+    setTransactionData(null);
+    setUploadStatus('');
+    setErrors({});
   };
 
   // If user is not admin or registrar, show access denied
@@ -217,11 +272,66 @@ function RegisterProperty() {
               </div>
             </div>
 
+            {/* IPFS Document Upload */}
+            <div className="form-row">
+              <div className="form-group">
+                <label>
+                  Land Deed Document
+                  <span className="field-hint">PDF, Image, or Scan (max 10MB). Stored on IPFS.</span>
+                </label>
+                <div
+                  className={`file-drop-zone ${documentFile ? 'has-file' : ''} ${errors.document ? 'input-error' : ''}`}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onClick={() => document.getElementById('doc-upload').click()}
+                >
+                  <input
+                    id="doc-upload"
+                    type="file"
+                    accept=".pdf,.png,.jpg,.jpeg,.webp"
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
+                    disabled={loading}
+                  />
+                  {documentFile ? (
+                    <div className="file-info">
+                      <span className="file-icon">📄</span>
+                      <div>
+                        <div className="file-name">{documentFile.name}</div>
+                        <div className="file-size">{(documentFile.size / 1024).toFixed(1)} KB</div>
+                      </div>
+                      <button
+                        type="button"
+                        className="remove-file"
+                        onClick={(e) => { e.stopPropagation(); setDocumentFile(null); }}
+                      >✕</button>
+                    </div>
+                  ) : (
+                    <div className="drop-prompt">
+                      <span className="upload-icon">📁</span>
+                      <p>Drag & drop your document here, or <strong>click to browse</strong></p>
+                      <p className="file-types">Supported: PDF, PNG, JPG, WEBP</p>
+                    </div>
+                  )}
+                </div>
+                {errors.document && (
+                  <span className="error-message">{errors.document}</span>
+                )}
+              </div>
+            </div>
+
+            {uploadStatus && (
+              <div className="upload-status">
+                <span className="spinner"></span>
+                {uploadStatus}
+              </div>
+            )}
+
             <button type="submit" className="submit-button" disabled={loading}>
               {loading ? (
                 <>
                   <span className="spinner"></span>
-                  Processing Transaction...
+                  Processing...
                 </>
               ) : (
                 'Register Property'
@@ -256,6 +366,17 @@ function RegisterProperty() {
                 <span className="detail-label">Gas Price:</span>
                 <span className="detail-value">{transactionData.gasPrice}</span>
               </div>
+              {transactionData.documentHash && (
+                <div className="detail-row">
+                  <span className="detail-label">IPFS Document:</span>
+                  <span className="detail-value">
+                    <a href={transactionData.documentUrl} target="_blank" rel="noopener noreferrer" className="ipfs-link">
+                      📄 {transactionData.documentHash.slice(0, 16)}... 
+                      <span className="link-arrow">↗</span>
+                    </a>
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="property-summary">
@@ -279,6 +400,10 @@ function RegisterProperty() {
                 </div>
               </div>
             </div>
+
+            <button onClick={resetForm} className="submit-button" style={{ marginTop: '1.5rem' }}>
+              Register Another Property
+            </button>
           </div>
         )}
 

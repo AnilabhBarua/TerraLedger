@@ -103,7 +103,7 @@ export interface TerraLedgerInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "registerProperty",
-    values: [AddressLike, string, string, string]
+    values: [AddressLike, string, string, string, string]
   ): string;
   encodeFunctionData(
     functionFragment: "removeRegistrar",
@@ -220,14 +220,16 @@ export namespace PropertyRegisteredEvent {
     owner: AddressLike,
     location: string,
     area: string,
-    propertyType: string
+    propertyType: string,
+    documentHash: string
   ];
   export type OutputTuple = [
     propertyId: bigint,
     owner: string,
     location: string,
     area: string,
-    propertyType: string
+    propertyType: string,
+    documentHash: string
   ];
   export interface OutputObject {
     propertyId: bigint;
@@ -235,6 +237,7 @@ export namespace PropertyRegisteredEvent {
     location: string;
     area: string;
     propertyType: string;
+    documentHash: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -422,12 +425,13 @@ export interface TerraLedger extends BaseContract {
   properties: TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, string, string, string, string, boolean] & {
+      [bigint, string, string, string, string, string, boolean] & {
         propertyId: bigint;
         owner: string;
         location: string;
         area: string;
         propertyType: string;
+        documentHash: string;
         isRegistered: boolean;
       }
     ],
@@ -439,7 +443,8 @@ export interface TerraLedger extends BaseContract {
       _propertyOwner: AddressLike,
       _location: string,
       _area: string,
-      _propertyType: string
+      _propertyType: string,
+      _documentHash: string
     ],
     [void],
     "nonpayable"
@@ -528,12 +533,13 @@ export interface TerraLedger extends BaseContract {
   ): TypedContractMethod<
     [arg0: BigNumberish],
     [
-      [bigint, string, string, string, string, boolean] & {
+      [bigint, string, string, string, string, string, boolean] & {
         propertyId: bigint;
         owner: string;
         location: string;
         area: string;
         propertyType: string;
+        documentHash: string;
         isRegistered: boolean;
       }
     ],
@@ -546,7 +552,8 @@ export interface TerraLedger extends BaseContract {
       _propertyOwner: AddressLike,
       _location: string,
       _area: string,
-      _propertyType: string
+      _propertyType: string,
+      _documentHash: string
     ],
     [void],
     "nonpayable"
@@ -648,7 +655,7 @@ export interface TerraLedger extends BaseContract {
       OwnershipTransferredEvent.OutputObject
     >;
 
-    "PropertyRegistered(uint256,address,string,string,string)": TypedContractEvent<
+    "PropertyRegistered(uint256,address,string,string,string,string)": TypedContractEvent<
       PropertyRegisteredEvent.InputTuple,
       PropertyRegisteredEvent.OutputTuple,
       PropertyRegisteredEvent.OutputObject

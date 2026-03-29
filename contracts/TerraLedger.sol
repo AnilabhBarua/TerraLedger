@@ -18,6 +18,7 @@ contract TerraLedger is AccessControl {
         string location;
         string area;
         string propertyType;
+        string documentHash;
         bool isRegistered;
     }
 
@@ -36,7 +37,8 @@ contract TerraLedger is AccessControl {
         address indexed owner,
         string location,
         string area,
-        string propertyType
+        string propertyType,
+        string documentHash
     );
 
     event OwnershipTransferred(
@@ -75,7 +77,8 @@ contract TerraLedger is AccessControl {
         address _propertyOwner, 
         string memory _location, 
         string memory _area, 
-        string memory _propertyType
+        string memory _propertyType,
+        string memory _documentHash
     ) external onlyRole(REGISTRAR_ROLE) {
         uint256 newPropertyId = nextPropertyId;
         properties[newPropertyId] = Property(
@@ -84,6 +87,7 @@ contract TerraLedger is AccessControl {
             _location,
             _area,
             _propertyType,
+            _documentHash,
             true
         );
 
@@ -92,7 +96,8 @@ contract TerraLedger is AccessControl {
             _propertyOwner,
             _location,
             _area,
-            _propertyType
+            _propertyType,
+            _documentHash
         );
 
         nextPropertyId++;

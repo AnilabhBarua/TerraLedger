@@ -28,7 +28,8 @@ function ImmutableRecords() {
                 owner: p.owner,
                 location: p.location,
                 area: p.area,
-                type: p.propertyType
+                type: p.propertyType,
+                documentHash: p.documentHash || ''
             });
           }
         }
@@ -148,6 +149,22 @@ function ImmutableRecords() {
                   <span className="label">Area</span>
                   <span className="value">{property.area}</span>
                 </div>
+
+                {property.documentHash && (
+                  <div className="record-item">
+                    <span className="label">Land Deed</span>
+                    <span className="value">
+                      <a 
+                        href={`https://gateway.pinata.cloud/ipfs/${property.documentHash}`} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{ color: '#43e97b', textDecoration: 'none', fontFamily: 'Courier New, monospace', fontSize: '12px' }}
+                      >
+                        📄 View on IPFS ↗
+                      </a>
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="record-footer">

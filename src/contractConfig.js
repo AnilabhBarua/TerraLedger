@@ -84,6 +84,12 @@ export const CONTRACT_ABI = [
         "internalType": "string",
         "name": "propertyType",
         "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "documentHash",
+        "type": "string"
       }
     ],
     "name": "PropertyRegistered",
@@ -402,6 +408,11 @@ export const CONTRACT_ABI = [
         "type": "string"
       },
       {
+        "internalType": "string",
+        "name": "documentHash",
+        "type": "string"
+      },
+      {
         "internalType": "bool",
         "name": "isRegistered",
         "type": "bool"
@@ -430,6 +441,11 @@ export const CONTRACT_ABI = [
       {
         "internalType": "string",
         "name": "_propertyType",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "_documentHash",
         "type": "string"
       }
     ],
