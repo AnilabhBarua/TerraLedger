@@ -33,7 +33,10 @@ export async function uploadToPinata(file) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(`Pinata upload failed: ${errorData.error || response.statusText}`);
+    const message = typeof errorData.error === 'object' 
+      ? JSON.stringify(errorData.error) 
+      : (errorData.error || response.statusText);
+    throw new Error(`Pinata upload failed: ${message}`);
   }
 
   const data = await response.json();
