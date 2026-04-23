@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
 import { uploadToPinata } from '../utils/pinata';
+import { useToast } from '../components/Toast';
 import './RegisterProperty.css';
 
 function RegisterProperty() {
@@ -11,10 +12,11 @@ function RegisterProperty() {
   const [propertyType, setPropertyType] = useState('Residential');
   const [documentFile, setDocumentFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState('');
   const [success, setSuccess] = useState(false);
   const [transactionData, setTransactionData] = useState(null);
   const [errors, setErrors] = useState({});
+
+  const { addToast, updateToast } = useToast();
 
   const userIsAdmin = localStorage.getItem('wallet_is_admin') === 'true';
   const userIsRegistrar = localStorage.getItem('wallet_is_registrar') === 'true';
@@ -95,32 +97,38 @@ function RegisterProperty() {
     setLoading(true);
     setSuccess(false);
 
+    // Create a single sticky toast that we mutate through the lifecycle
+    const toastId = addToast('Preparing Registration', 'Validating your inputs…', 'pending', 0);
+
     try {
       let documentHash = '';
 
       // Step 1: Upload document to IPFS if a file is attached
       if (documentFile) {
-        setUploadStatus('Uploading document to IPFS...');
+        updateToast(toastId, 'Uploading to IPFS', `Pinning "${documentFile.name}" to IPFS…`, 'pending', 0);
         try {
           const result = await uploadToPinata(documentFile);
           documentHash = result.ipfsHash;
-          setUploadStatus(`Uploaded! CID: ${documentHash.slice(0, 12)}...`);
+          updateToast(toastId, 'IPFS Upload Complete', `CID: ${documentHash.slice(0, 20)}…`, 'info', 0);
         } catch (uploadErr) {
           console.error('IPFS Upload Error:', uploadErr);
+          updateToast(toastId, 'IPFS Upload Failed', uploadErr.message || 'Could not pin document.', 'error', 6000);
           setErrors({ document: uploadErr.message || 'Failed to upload document to IPFS.' });
           setLoading(false);
-          setUploadStatus('');
           return;
         }
       }
 
-      // Step 2: Register property on-chain
-      setUploadStatus(documentFile ? 'Recording on blockchain...' : '');
+      // Step 2: Request MetaMask signature
+      updateToast(toastId, 'Awaiting Signature', 'Please confirm the transaction in MetaMask…', 'pending', 0);
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
       const tx = await contract.registerProperty(ownerAddress, location, area, propertyType, documentHash);
+
+      // Step 3: Mining
+      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0);
       const receipt = await tx.wait();
 
       setTransactionData({
@@ -133,12 +141,20 @@ function RegisterProperty() {
         documentUrl: documentHash ? `https://gateway.pinata.cloud/ipfs/${documentHash}` : null
       });
 
+      // Step 4: Done
+      updateToast(
+        toastId,
+        '\u2705 Property Registered!',
+        `Block #${receipt.blockNumber} • Tx: ${tx.hash.slice(0, 14)}…`,
+        'success',
+        7000
+      );
       setSuccess(true);
-      setUploadStatus('');
     } catch (error) {
       console.error("Transaction Error:", error);
-      setErrors({ submit: error.reason || error.message || "Transaction failed" });
-      setUploadStatus('');
+      const msg = error.reason || error.message || 'Transaction failed';
+      updateToast(toastId, 'Transaction Failed', msg, 'error', 7000);
+      setErrors({ submit: msg });
     } finally {
       setLoading(false);
     }
@@ -152,7 +168,6 @@ function RegisterProperty() {
     setDocumentFile(null);
     setSuccess(false);
     setTransactionData(null);
-    setUploadStatus('');
     setErrors({});
   };
 
@@ -320,12 +335,7 @@ function RegisterProperty() {
               </div>
             </div>
 
-            {uploadStatus && (
-              <div className="upload-status">
-                <span className="spinner"></span>
-                {uploadStatus}
-              </div>
-            )}
+            {/* Upload status is now shown via Toast, removed inline status bar */}
 
             <button type="submit" className="submit-button" disabled={loading}>
               {loading ? (

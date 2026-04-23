@@ -12,7 +12,6 @@ export async function uploadToPinata(file) {
 
   const formData = new FormData();
   formData.append('file', file);
-
   const metadata = JSON.stringify({
     name: `TerraLedger_${file.name}_${Date.now()}`,
   });

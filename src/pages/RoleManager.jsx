@@ -1,47 +1,56 @@
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
+import { useToast } from '../components/Toast';
 import './RoleManager.css';
 
 function RoleManager() {
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
-  
+
+  const { addToast, updateToast } = useToast();
   const userIsAdmin = localStorage.getItem('wallet_is_admin') === 'true';
 
   const handleRoleAction = async (action) => {
     if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      setMessage({ type: 'error', text: 'Valid Ethereum address required.' });
+      addToast('Invalid Address', 'Please enter a valid Ethereum address (0x…).', 'error', 5000);
       return;
     }
     setLoading(true);
-    setMessage({ type: '', text: '' });
-    
+
     if (!window.ethereum) {
-      setMessage({ type: 'error', text: 'MetaMask is required.' });
+      addToast('MetaMask Required', 'Please install MetaMask to continue.', 'error', 5000);
       setLoading(false);
       return;
     }
+
+    const actionLabel = action === 'add' ? 'Granting' : 'Revoking';
+    const toastId = addToast(`${actionLabel} Registrar Role`, 'Awaiting MetaMask signature…', 'pending', 0);
 
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-      
+
       let tx;
       if (action === 'add') {
         tx = await contract.addRegistrar(address);
       } else {
         tx = await contract.removeRegistrar(address);
       }
-      setMessage({ type: 'info', text: 'Transaction pending...' });
+      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0);
       await tx.wait();
-      setMessage({ type: 'success', text: `Registrar role ${action === 'add' ? 'granted' : 'revoked'} successfully.` });
+      updateToast(
+        toastId,
+        `\u2705 Role ${action === 'add' ? 'Granted' : 'Revoked'}`,
+        `Registrar role ${action === 'add' ? 'granted to' : 'revoked from'} ${address.slice(0, 16)}…`,
+        'success',
+        6000
+      );
       setAddress('');
     } catch (err) {
       console.error(err);
-      setMessage({ type: 'error', text: err.reason || err.message || 'Transaction failed.' });
+      updateToast(toastId, 'Transaction Failed', err.reason || err.message || 'Transaction failed.', 'error', 7000);
     } finally {
       setLoading(false);
     }
@@ -65,20 +74,14 @@ function RoleManager() {
         <p>Grant or revoke Registrar privileges.</p>
         
         <div className="form-group">
-          <input 
-            type="text" 
-            placeholder="User Address (0x...)" 
-            value={address} 
+          <input
+            type="text"
+            placeholder="User Address (0x...)"
+            value={address}
             onChange={(e) => setAddress(e.target.value)}
             disabled={loading}
           />
         </div>
-        
-        {message.text && (
-          <div className={`message message-${message.type}`}>
-            {message.text}
-          </div>
-        )}
         
         <div className="button-group">
           <button 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
+import { useToast } from '../components/Toast';
 import './TransferOwnership.css';
 
 function TransferOwnership() {
@@ -18,6 +19,8 @@ function TransferOwnership() {
 
   const currentUserAddress = localStorage.getItem('wallet_user_address') || 'Not Connected';
   const userIsRegistrar = localStorage.getItem('wallet_is_registrar') === 'true' || localStorage.getItem('wallet_is_admin') === 'true';
+
+  const { addToast, updateToast } = useToast();
 
   const fetchProps = async () => {
     if (!window.ethereum) return;
@@ -113,12 +116,15 @@ function TransferOwnership() {
     setLoading(true);
     setStep(3);
 
+    const toastId = addToast('Requesting Transfer', 'Awaiting MetaMask signature…', 'pending', 0);
+
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
       const tx = await contract.requestTransfer(property.propertyId, newOwner);
+      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0);
       const receipt = await tx.wait();
 
       setTransactionData({
@@ -129,11 +135,14 @@ function TransferOwnership() {
         to: newOwner,
         status: 'Transfer Requested'
       });
+      updateToast(toastId, '\u2705 Transfer Requested!', `Pending Registrar approval • Block #${receipt.blockNumber}`, 'success', 7000);
       setSuccess(true);
-      fetchProps(); // Refresh list automatically
+      fetchProps();
     } catch (error) {
       console.error(error);
-      setErrors({ newOwner: error.reason || error.message || "Transaction failed" });
+      const msg = error.reason || error.message || 'Transaction failed';
+      updateToast(toastId, 'Request Failed', msg, 'error', 7000);
+      setErrors({ newOwner: msg });
       setStep(2);
     } finally {
       setLoading(false);
@@ -144,14 +153,18 @@ function TransferOwnership() {
     if (!window.ethereum) return;
     setLoading(true);
     setStep(3);
+
+    const toastId = addToast('Approving Transfer', 'Awaiting MetaMask signature…', 'pending', 0);
+
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
       const tx = await contract.approveTransfer(property.propertyId);
+      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0);
       const receipt = await tx.wait();
-      
+
       setTransactionData({
         hash: tx.hash,
         blockNumber: receipt.blockNumber,
@@ -160,11 +173,14 @@ function TransferOwnership() {
         to: property.buyer,
         status: 'Transfer Approved'
       });
+      updateToast(toastId, '\u2705 Transfer Approved!', `Ownership transferred • Block #${receipt.blockNumber}`, 'success', 7000);
       setSuccess(true);
-      fetchProps(); // Refresh list automatically
+      fetchProps();
     } catch (error) {
       console.error(error);
-      setErrors({ generic: error.reason || error.message || "Transaction failed" });
+      const msg = error.reason || error.message || 'Transaction failed';
+      updateToast(toastId, 'Approval Failed', msg, 'error', 7000);
+      setErrors({ generic: msg });
       setStep(4);
     } finally {
       setLoading(false);
@@ -174,15 +190,19 @@ function TransferOwnership() {
   const handleCancelTransfer = async () => {
     if (!window.ethereum) return;
     setLoading(true);
-    setStep(3); // reusing processing UI
+    setStep(3);
+
+    const toastId = addToast('Cancelling Transfer', 'Awaiting MetaMask signature…', 'pending', 0);
+
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
       const tx = await contract.cancelTransfer(property.propertyId);
+      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0);
       const receipt = await tx.wait();
-      
+
       setTransactionData({
         hash: tx.hash,
         blockNumber: receipt.blockNumber,
@@ -191,14 +211,17 @@ function TransferOwnership() {
         to: property.buyer,
         status: 'Transfer Cancelled'
       });
+      updateToast(toastId, '\u2705 Transfer Cancelled', `Request withdrawn • Block #${receipt.blockNumber}`, 'success', 7000);
       setSuccess(true);
       fetchProps();
     } catch (error) {
-        console.error(error);
-        setErrors({ generic: error.reason || error.message || "Transaction failed" });
-        setStep(5); // Return to owner cancellation view
+      console.error(error);
+      const msg = error.reason || error.message || 'Transaction failed';
+      updateToast(toastId, 'Cancellation Failed', msg, 'error', 7000);
+      setErrors({ generic: msg });
+      setStep(5);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 

@@ -21,3 +21,8 @@
 
 # Environment variables
 .env
+
+# AI Agent Tracking Files
+task.md
+implementation_plan.md
+walkthrough.md
