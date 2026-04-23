@@ -8,6 +8,7 @@ function TransactionHistory() {
   const [allTransactions, setAllTransactions] = useState([]);
   const [transfersCount, setTransfersCount] = useState(0);
   const [registrationsCount, setRegistrationsCount] = useState(0);
+  const [totalGasUsed, setTotalGasUsed] = useState(BigInt(0));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,6 +30,8 @@ function TransactionHistory() {
         const regs = await Promise.all(logsReg.map(async log => {
           const block = await provider.getBlock(log.blockHash);
           const tx = await provider.getTransaction(log.transactionHash);
+          const receipt = await provider.getTransactionReceipt(log.transactionHash);
+          const gasCostWei = receipt.gasUsed * tx.gasPrice;
           return {
             id: log.transactionHash + '-' + log.index,
             type: 'Registration',
@@ -40,14 +43,18 @@ function TransactionHistory() {
             timestamp: new Date(block.timestamp * 1000).toISOString(),
             blockNumber: log.blockNumber,
             status: 'confirmed',
-            gasUsed: 'Fetched Network Tx',
-            gasPrice: ethers.formatUnits(tx.gasPrice, 'gwei') + ' Gwei'
+            gasUsed: receipt.gasUsed.toString(),
+            gasPrice: ethers.formatUnits(tx.gasPrice, 'gwei') + ' Gwei',
+            gasCostEth: ethers.formatEther(gasCostWei),
+            latency: null,
           };
         }));
 
         const trans = await Promise.all(logsTrans.map(async log => {
           const block = await provider.getBlock(log.blockHash);
           const tx = await provider.getTransaction(log.transactionHash);
+          const receipt = await provider.getTransactionReceipt(log.transactionHash);
+          const gasCostWei = receipt.gasUsed * tx.gasPrice;
           return {
             id: log.transactionHash + '-' + log.index,
             type: 'Transfer',
@@ -59,18 +66,23 @@ function TransactionHistory() {
             timestamp: new Date(block.timestamp * 1000).toISOString(),
             blockNumber: log.blockNumber,
             status: 'confirmed',
-            gasUsed: 'Fetched Network Tx',
-            gasPrice: ethers.formatUnits(tx.gasPrice, 'gwei') + ' Gwei'
+            gasUsed: receipt.gasUsed.toString(),
+            gasPrice: ethers.formatUnits(tx.gasPrice, 'gwei') + ' Gwei',
+            gasCostEth: ethers.formatEther(gasCostWei),
+            latency: null,
           };
         }));
 
-        const combined = [...regs, ...trans].sort((a, b) => 
+        const combined = [...regs, ...trans].sort((a, b) =>
           new Date(b.timestamp) - new Date(a.timestamp)
         );
-        
+
+        const totalGas = combined.reduce((sum, t) => sum + BigInt(t.gasUsed || 0), BigInt(0));
+
         setAllTransactions(combined);
         setRegistrationsCount(regs.length);
         setTransfersCount(trans.length);
+        setTotalGasUsed(totalGas);
       } catch (err) {
         console.error("Error fetching transactions:", err);
       } finally {
@@ -111,6 +123,22 @@ function TransactionHistory() {
           <div className="stat-box">
             <div className="stat-number">100%</div>
             <div className="stat-label">Success Rate</div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-number" title={totalGasUsed.toString()}>
+              {allTransactions.length > 0
+                ? `${(Number(totalGasUsed) / 1000).toFixed(1)}K`
+                : '—'}
+            </div>
+            <div className="stat-label">Total Gas Used</div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-number">
+              {allTransactions.length > 0
+                ? `${Math.round(Number(totalGasUsed) / allTransactions.length).toLocaleString()}`
+                : '—'}
+            </div>
+            <div className="stat-label">Avg Gas / Tx</div>
           </div>
         </div>
 
@@ -189,12 +217,22 @@ function TransactionHistory() {
                 <div className="tx-meta">
                   <div className="meta-item">
                     <span>Gas Used:</span>
-                    <span>{tx.gasUsed}</span>
+                    <span>{Number(tx.gasUsed).toLocaleString()} units</span>
                   </div>
                   <div className="meta-item">
                     <span>Gas Price:</span>
                     <span>{tx.gasPrice}</span>
                   </div>
+                  <div className="meta-item">
+                    <span>Gas Cost:</span>
+                    <span>{parseFloat(tx.gasCostEth).toFixed(8)} ETH</span>
+                  </div>
+                  {tx.latency && (
+                    <div className="meta-item">
+                      <span>Latency:</span>
+                      <span>{tx.latency}s</span>
+                    </div>
+                  )}
                   <div className="meta-item">
                     <span>Status:</span>
                     <span className="success">✓ Success</span>

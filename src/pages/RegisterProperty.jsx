@@ -127,16 +127,21 @@ function RegisterProperty() {
 
       const tx = await contract.registerProperty(ownerAddress, location, area, propertyType, documentHash);
 
-      // Step 3: Mining
+      // Step 3: Mining — start latency timer when tx hash is received
+      const miningStart = performance.now();
       updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0);
       const receipt = await tx.wait();
+      const latencyMs = performance.now() - miningStart;
+      const latencySec = (latencyMs / 1000).toFixed(2);
 
       setTransactionData({
         hash: tx.hash,
         blockNumber: receipt.blockNumber,
         timestamp: new Date().toISOString(),
-        gasUsed: receipt.gasUsed.toString(),
+        gasUsed: Number(receipt.gasUsed).toLocaleString(),
         gasPrice: ethers.formatUnits(receipt.gasPrice || tx.gasPrice || 0, 'gwei') + ' Gwei',
+        gasCostEth: ethers.formatEther(receipt.gasUsed * (receipt.gasPrice || tx.gasPrice || BigInt(0))),
+        latency: latencySec,
         documentHash: documentHash,
         documentUrl: documentHash ? `https://gateway.pinata.cloud/ipfs/${documentHash}` : null
       });
@@ -145,7 +150,7 @@ function RegisterProperty() {
       updateToast(
         toastId,
         '\u2705 Property Registered!',
-        `Block #${receipt.blockNumber} • Tx: ${tx.hash.slice(0, 14)}…`,
+        `Block #${receipt.blockNumber} \u2022 Gas: ${Number(receipt.gasUsed).toLocaleString()} \u2022 ${latencySec}s`,
         'success',
         7000
       );

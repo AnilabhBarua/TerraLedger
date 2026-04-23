@@ -39,11 +39,13 @@ function RoleManager() {
         tx = await contract.removeRegistrar(address);
       }
       updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0);
+      const miningStart = performance.now();
       await tx.wait();
+      const latencySec = ((performance.now() - miningStart) / 1000).toFixed(2);
       updateToast(
         toastId,
         `\u2705 Role ${action === 'add' ? 'Granted' : 'Revoked'}`,
-        `Registrar role ${action === 'add' ? 'granted to' : 'revoked from'} ${address.slice(0, 16)}…`,
+        `${action === 'add' ? 'Granted to' : 'Revoked from'} ${address.slice(0, 16)}\u2026 \u2022 Gas included \u2022 ${latencySec}s`,
         'success',
         6000
       );
