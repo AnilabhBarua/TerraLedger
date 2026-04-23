@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
+import terraLogo from '../icons/SmallSquareLogoJpg.jpg';
 import './Dashboard.css';
 
 function Dashboard() {
@@ -94,6 +95,9 @@ function Dashboard() {
     <div className="dashboard-container">
       <div className="dashboard-hero">
         <div className="hero-content">
+          <div className="hero-logo-wrap">
+            <img src={terraLogo} alt="TerraLedger Logo" className="hero-logo" />
+          </div>
           <h1 className="hero-title">
             <span className="gradient-text">TerraLedger</span>
           </h1>

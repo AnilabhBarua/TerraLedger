@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import useNetwork from '../hooks/useNetwork';
+import terraLogo from '../icons/SmallSquareLogoJpg.jpg';
 import './Navbar.css';
 
 function Navbar() {
@@ -26,7 +27,7 @@ function Navbar() {
     <nav className="navbar">
       <div className="navbar-container">
         <Link to="/" className="logo">
-          <span className="logo-icon">🌍</span>
+          <img src={terraLogo} alt="TerraLedger" className="logo-img" />
           <span className="logo-text">TerraLedger</span>
         </Link>
 
