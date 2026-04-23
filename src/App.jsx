@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import NetworkGuard from './components/NetworkGuard';
 import Dashboard from './pages/Dashboard';
 import RegisterProperty from './pages/RegisterProperty';
 import TransferOwnership from './pages/TransferOwnership';
@@ -40,6 +41,7 @@ function App() {
       <Router>
         <div className="app">
           <Navbar />
+          <NetworkGuard />
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/register" element={<RegisterProperty />} />

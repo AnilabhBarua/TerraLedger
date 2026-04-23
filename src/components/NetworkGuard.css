@@ -1,0 +1,184 @@
+/* ─── Network Guard Banner ───────────────────────────────────────────────── */
+
+.network-guard {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(245, 87, 108, 0.12) 0%, rgba(240, 147, 251, 0.08) 100%);
+  border-bottom: 1px solid rgba(245, 87, 108, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 999;
+  animation: ng-slide-down 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes ng-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.network-guard__inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 12px 32px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* Icon */
+.network-guard__icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  animation: ng-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ng-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.15); }
+}
+
+/* Text block */
+.network-guard__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.network-guard__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f5576c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.network-guard__sub {
+  font-size: 13px;
+  color: #d1d5db;
+  line-height: 1.4;
+}
+
+.network-guard__sub strong {
+  color: #e4e6eb;
+}
+
+/* Actions */
+.network-guard__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.network-guard__error {
+  font-size: 12px;
+  color: #f5576c;
+  max-width: 200px;
+}
+
+.network-guard__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.2s, transform 0.15s;
+  box-shadow: 0 4px 14px rgba(245, 87, 108, 0.35);
+}
+
+.network-guard__btn:hover:not(:disabled) {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.network-guard__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Spinner */
+.network-guard__spinner {
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: ng-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ng-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Navbar Network Badge ──────────────────────────────────────────────── */
+
+.network-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.network-badge--ok {
+  background: rgba(67, 233, 123, 0.08);
+  border-color: rgba(67, 233, 123, 0.25);
+  color: #43e97b;
+}
+
+.network-badge--wrong {
+  background: rgba(245, 87, 108, 0.10);
+  border-color: rgba(245, 87, 108, 0.30);
+  color: #f5576c;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.network-badge--wrong:hover {
+  background: rgba(245, 87, 108, 0.18);
+}
+
+.network-badge__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.network-badge--ok   .network-badge__dot { background: #43e97b; }
+.network-badge--wrong .network-badge__dot {
+  background: #f5576c;
+  animation: ng-pulse 1.4s ease-in-out infinite;
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .network-guard__inner {
+    padding: 12px 20px;
+  }
+
+  .network-guard__btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

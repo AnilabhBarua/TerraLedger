@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import useNetwork from '../hooks/useNetwork';
 import './Navbar.css';
 
 function Navbar() {
   const location = useLocation();
   const [walletAddress, setWalletAddress] = useState(localStorage.getItem('wallet_user_address'));
-
   const [userIsAdmin, setUserIsAdmin] = useState(localStorage.getItem('wallet_is_admin') === 'true');
+  const { chainId, isCorrectNetwork, networkName, switchToCorrectNetwork } = useNetwork();
 
   useEffect(() => {
     // Simple polling to catch localStorage updates since 'storage' event only fires across tabs
@@ -56,6 +57,17 @@ function Navbar() {
         </div>
 
         <div className="navbar-right">
+          {/* Live network badge — only show when wallet is connected */}
+          {chainId !== null && (
+            <div
+              className={`network-badge ${isCorrectNetwork ? 'network-badge--ok' : 'network-badge--wrong'}`}
+              onClick={!isCorrectNetwork ? switchToCorrectNetwork : undefined}
+              title={isCorrectNetwork ? `Connected to ${networkName}` : `Wrong network — click to switch to Hardhat Local`}
+            >
+              <span className="network-badge__dot" />
+              {isCorrectNetwork ? networkName : `Wrong Network`}
+            </div>
+          )}
           <Link to="/wallet" className="wallet-button">
             <span className="wallet-icon">👛</span>
             <span className="wallet-text">
