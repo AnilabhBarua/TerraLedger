@@ -30,13 +30,20 @@
 }
 
 .logo-img {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  border: 1.5px solid rgba(67, 233, 123, 0.4);
-  box-shadow: 0 0 10px rgba(67, 233, 123, 0.25);
-  background: #0a0e1a;
+  mix-blend-mode: multiply;
+  filter: contrast(1.05) saturate(1.1);
+  border: 1.5px solid rgba(67, 233, 123, 0.45);
+  box-shadow: 0 0 12px rgba(67, 233, 123, 0.3);
+  background: #fff;
+  transition: box-shadow 0.3s ease;
+}
+
+.logo:hover .logo-img {
+  box-shadow: 0 0 20px rgba(67, 233, 123, 0.55);
 }
 
 .logo-text {
