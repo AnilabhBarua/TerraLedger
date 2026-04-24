@@ -483,7 +483,7 @@
 
 @media (max-width: 768px) {
   .register-form {
-    padding: 32px 24px;
+    padding: 24px 16px;
   }
 
   .form-row {
@@ -491,13 +491,34 @@
   }
 
   .register-header h1 {
-    font-size: 32px;
+    font-size: 28px;
   }
 
   .access-denied {
-    padding: 40px 24px;
+    padding: 32px 16px;
+    margin: 16px;
+  }
+
+  .submit-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .register-page {
+    padding: 24px 12px;
   }
 }
+
+@media (max-width: 480px) {
+  .register-form {
+    padding: 20px 12px;
+  }
+
+  .register-header h1 {
+    font-size: 24px;
+  }
+}
+
 
 /* IPFS Document Upload Zone */
 .file-drop-zone {
