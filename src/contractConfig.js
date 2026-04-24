@@ -20,15 +20,19 @@ export const DEPLOY_BLOCK = import.meta.env.VITE_NETWORK === 'sepolia' ? 1072386
 
 /**
  * Returns a read-only provider for fetching blockchain data.
- * Priority: MetaMask (BrowserProvider) → Alchemy JSON-RPC (Sepolia) → Localhost fallback
+ * Priority: MetaMask (BrowserProvider) → Public RPC (Sepolia) → Localhost fallback
  * This allows wallet-less users (mobile, incognito) to still view all records.
  */
 export function getReadOnlyProvider() {
   if (window.ethereum) {
     return new ethers.BrowserProvider(window.ethereum);
   }
-  const rpcUrl = import.meta.env.VITE_SEPOLIA_RPC_URL
-    || "http://127.0.0.1:8545";
+  
+  // Use a public RPC node instead of Alchemy to avoid the strict 10-block eth_getLogs limit
+  const rpcUrl = import.meta.env.VITE_NETWORK === 'sepolia'
+    ? "https://ethereum-sepolia-rpc.publicnode.com"
+    : "http://127.0.0.1:8545";
+    
   return new ethers.JsonRpcProvider(rpcUrl);
 }
 
