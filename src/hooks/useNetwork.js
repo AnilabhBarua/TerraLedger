@@ -9,18 +9,18 @@ export const SUPPORTED_NETWORKS = {
     nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18 },
     blockExplorerUrls: [],
   },
-  // Add more networks here when deploying to testnet/mainnet
-  // 11155111: {
-  //   chainId: '0xAA36A7',
-  //   chainName: 'Sepolia Testnet',
-  //   rpcUrls: ['https://rpc.sepolia.org'],
-  //   nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18 },
-  //   blockExplorerUrls: ['https://sepolia.etherscan.io'],
-  // },
+  11155111: {
+    chainId: '0xAA36A7',
+    chainName: 'Ethereum Sepolia',
+    rpcUrls: ['https://rpc.sepolia.org'],
+    nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18 },
+    blockExplorerUrls: ['https://sepolia.etherscan.io'],
+  },
 };
 
-// The target chain ID the app is deployed on
-export const TARGET_CHAIN_ID = 31337;
+// Reads VITE_NETWORK env var: 'sepolia' targets Sepolia, anything else targets local Hardhat
+export const TARGET_CHAIN_ID =
+  import.meta.env.VITE_NETWORK === 'sepolia' ? 11155111 : 31337;
 
 /**
  * useNetwork — monitors the connected wallet's chain and exposes helpers

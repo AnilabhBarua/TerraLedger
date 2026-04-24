@@ -1,4 +1,14 @@
-export const CONTRACT_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+// Contract addresses per environment
+const CONTRACT_ADDRESS_LOCAL   = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const CONTRACT_ADDRESS_SEPOLIA = import.meta.env.VITE_CONTRACT_ADDRESS_SEPOLIA || "";
+
+// Automatically select address based on VITE_NETWORK env var
+// Set VITE_NETWORK=sepolia in your .env to target Sepolia testnet
+export const CONTRACT_ADDRESS =
+  import.meta.env.VITE_NETWORK === 'sepolia'
+    ? CONTRACT_ADDRESS_SEPOLIA
+    : CONTRACT_ADDRESS_LOCAL;
+
 
 export const CONTRACT_ABI = [
   {
