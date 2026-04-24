@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
+import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider } from '../contractConfig';
 import terraLogo from '../icons/SmallSquareLogoJpg.jpg';
 import './Dashboard.css';
 
@@ -17,22 +17,20 @@ function Dashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        if (window.ethereum) {
-          const provider = new ethers.BrowserProvider(window.ethereum);
-          const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-          
-          const nextId = await contract.nextPropertyId();
-          const registered = Number(nextId) > 0 ? Number(nextId) - 1 : 0;
-          
-          const filter = contract.filters.OwnershipTransferred();
-          const logs = await contract.queryFilter(filter, 0, 'latest');
-          
-          setStats({
-            properties: registered.toString(),
-            transfers: logs.length.toString(),
-            security: '100%'
-          });
-        }
+        const provider = getReadOnlyProvider();
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
+
+        const nextId = await contract.nextPropertyId();
+        const registered = Number(nextId) > 0 ? Number(nextId) - 1 : 0;
+
+        const filter = contract.filters.OwnershipTransferred();
+        const logs = await contract.queryFilter(filter, 0, 'latest');
+
+        setStats({
+          properties: registered.toString(),
+          transfers: logs.length.toString(),
+          security: '100%'
+        });
       } catch (err) {
         console.error("Dashboard stats error:", err);
       }

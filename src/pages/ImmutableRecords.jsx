@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
+import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider } from '../contractConfig';
 import { verifyDocumentAgainstChain } from '../utils/verifyDocument';
 import './ImmutableRecords.css';
 
@@ -35,12 +35,8 @@ function ImmutableRecords() {
 
   useEffect(() => {
     const fetchProps = async () => {
-      if (!window.ethereum) {
-        setLoading(false);
-        return;
-      }
       try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
+        const provider = getReadOnlyProvider();
         const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
         
         // Fetch properties

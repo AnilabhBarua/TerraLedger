@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
+import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider } from '../contractConfig';
 import './PropertySearch.css';
 
 function PropertySearch() {
@@ -15,12 +15,8 @@ function PropertySearch() {
 
   useEffect(() => {
     const fetchProps = async () => {
-      if (!window.ethereum) {
-        setLoading(false);
-        return;
-      }
       try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
+        const provider = getReadOnlyProvider();
         const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
         const nextId = await contract.nextPropertyId();
         const props = [];

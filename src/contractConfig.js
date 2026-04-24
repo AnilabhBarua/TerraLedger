@@ -9,6 +9,22 @@ export const CONTRACT_ADDRESS =
     ? CONTRACT_ADDRESS_SEPOLIA
     : CONTRACT_ADDRESS_LOCAL;
 
+/**
+ * Returns a read-only provider for fetching blockchain data.
+ * Priority: MetaMask (BrowserProvider) → Alchemy JSON-RPC (Sepolia) → Localhost fallback
+ * This allows wallet-less users (mobile, incognito) to still view all records.
+ */
+import { ethers } from 'ethers';
+export function getReadOnlyProvider() {
+  if (window.ethereum) {
+    return new ethers.BrowserProvider(window.ethereum);
+  }
+  const rpcUrl = import.meta.env.VITE_SEPOLIA_RPC_URL
+    || "http://127.0.0.1:8545";
+  return new ethers.JsonRpcProvider(rpcUrl);
+}
+
+
 
 export const CONTRACT_ABI = [
   {
