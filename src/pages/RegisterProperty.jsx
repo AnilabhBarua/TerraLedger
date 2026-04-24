@@ -6,6 +6,9 @@ import { useToast } from '../components/Toast';
 import './RegisterProperty.css';
 
 function RegisterProperty() {
+  const [activeTab, setActiveTab] = useState('register'); // 'register' | 'correct'
+
+  // --- Register form state ---
   const [ownerAddress, setOwnerAddress] = useState('');
   const [location, setLocation] = useState('');
   const [area, setArea] = useState('');
@@ -15,6 +18,13 @@ function RegisterProperty() {
   const [success, setSuccess] = useState(false);
   const [transactionData, setTransactionData] = useState(null);
   const [errors, setErrors] = useState({});
+
+  // --- Correction form state ---
+  const [correctPropertyId, setCorrectPropertyId] = useState('');
+  const [correctFile, setCorrectFile] = useState(null);
+  const [correctLoading, setCorrectLoading] = useState(false);
+  const [correctSuccess, setCorrectSuccess] = useState(null);
+  const [correctError, setCorrectError] = useState('');
 
   const { addToast, updateToast } = useToast();
 
@@ -198,6 +208,52 @@ function RegisterProperty() {
     );
   }
 
+  const handleCorrection = async (e) => {
+    e.preventDefault();
+    setCorrectError('');
+    setCorrectSuccess(null);
+
+    const id = parseInt(correctPropertyId);
+    if (!correctPropertyId || isNaN(id) || id <= 0) {
+      setCorrectError('Please enter a valid Property ID (e.g. 1, 2, 3...).');
+      return;
+    }
+    if (!correctFile) {
+      setCorrectError('Please select the corrected deed document.');
+      return;
+    }
+    if (!window.ethereum) {
+      setCorrectError('MetaMask is required to submit corrections.');
+      return;
+    }
+
+    setCorrectLoading(true);
+    const toastId = addToast('Uploading corrected document to IPFS...', 'loading', 0);
+    try {
+      const newCid = await uploadToPinata(correctFile);
+      updateToast(toastId, 'Submitting correction to blockchain...', 'loading');
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+      const tx = await contract.updatePropertyDocument(id, newCid);
+      await tx.wait();
+
+      updateToast(toastId, 'Document corrected successfully! ✅', 'success');
+      setCorrectSuccess({ propertyId: id, newCid, txHash: tx.hash });
+      setCorrectPropertyId('');
+      setCorrectFile(null);
+    } catch (err) {
+      console.error(err);
+      const msg = err?.reason || err?.message || 'Transaction failed.';
+      updateToast(toastId, `Error: ${msg}`, 'error');
+      setCorrectError(msg);
+    } finally {
+      setCorrectLoading(false);
+    }
+  };
+
   return (
     <div className="register-page">
       <div className="register-container">
@@ -210,6 +266,109 @@ function RegisterProperty() {
             <span>{userIsAdmin ? 'Admin Mode' : 'Registrar Mode'}</span>
           </div>
         </div>
+
+        {/* Tab Switcher */}
+        <div style={{ display: 'flex', gap: '0.75rem', margin: '0 0 2rem 0' }}>
+          <button
+            type="button"
+            onClick={() => { setActiveTab('register'); setSuccess(false); }}
+            style={{
+              flex: 1, padding: '0.85rem', borderRadius: '12px', border: 'none', cursor: 'pointer',
+              fontWeight: '700', fontSize: '0.95rem', transition: 'all 0.2s',
+              background: activeTab === 'register' ? 'linear-gradient(135deg, #667eea, #764ba2)' : 'rgba(255,255,255,0.05)',
+              color: activeTab === 'register' ? '#fff' : 'rgba(255,255,255,0.5)',
+              boxShadow: activeTab === 'register' ? '0 4px 15px rgba(102,126,234,0.4)' : 'none'
+            }}
+          >
+            📝 Register New Property
+          </button>
+          <button
+            type="button"
+            onClick={() => { setActiveTab('correct'); setCorrectSuccess(null); setCorrectError(''); }}
+            style={{
+              flex: 1, padding: '0.85rem', borderRadius: '12px', border: 'none', cursor: 'pointer',
+              fontWeight: '700', fontSize: '0.95rem', transition: 'all 0.2s',
+              background: activeTab === 'correct' ? 'linear-gradient(135deg, #f093fb, #f5576c)' : 'rgba(255,255,255,0.05)',
+              color: activeTab === 'correct' ? '#fff' : 'rgba(255,255,255,0.5)',
+              boxShadow: activeTab === 'correct' ? '0 4px 15px rgba(240,93,251,0.4)' : 'none'
+            }}
+          >
+            ✏️ Correct Document
+          </button>
+        </div>
+
+        {/* ===== CORRECTION TAB ===== */}
+        {activeTab === 'correct' && (
+          <div>
+            <div style={{ background: 'rgba(240,93,251,0.08)', border: '1px solid rgba(240,93,251,0.3)', borderRadius: '12px', padding: '1rem 1.5rem', marginBottom: '1.5rem' }}>
+              <p style={{ margin: 0, color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem' }}>
+                ⚠️ <strong style={{ color: '#f5576c' }}>Registrar Action:</strong> This will update the deed document hash stored on the blockchain for the selected property. An audit trail event will be recorded permanently.
+              </p>
+            </div>
+
+            {correctSuccess && (
+              <div style={{ background: 'rgba(0,230,118,0.1)', border: '1px solid rgba(0,230,118,0.4)', borderRadius: '12px', padding: '1.5rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ color: '#00e676', marginTop: 0 }}>✅ Correction Successful!</h3>
+                <p style={{ margin: '0.25rem 0', color: 'rgba(255,255,255,0.8)' }}><strong>Property ID:</strong> #{correctSuccess.propertyId}</p>
+                <p style={{ margin: '0.25rem 0', color: 'rgba(255,255,255,0.8)', wordBreak: 'break-all' }}><strong>New Document CID:</strong> {correctSuccess.newCid}</p>
+                <p style={{ margin: '0.25rem 0', color: 'rgba(255,255,255,0.8)', wordBreak: 'break-all' }}><strong>Tx Hash:</strong> {correctSuccess.txHash}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleCorrection} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="form-group">
+                <label>Property ID to Correct <span className="required">*</span></label>
+                <input
+                  type="number"
+                  min="1"
+                  placeholder="e.g. 1"
+                  value={correctPropertyId}
+                  onChange={e => setCorrectPropertyId(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Corrected Deed Document <span className="required">*</span></label>
+                <div
+                  className="document-upload-area"
+                  onDrop={e => { e.preventDefault(); setCorrectFile(e.dataTransfer.files[0]); }}
+                  onDragOver={e => e.preventDefault()}
+                  onClick={() => document.getElementById('correct-file-input').click()}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <input
+                    id="correct-file-input"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    style={{ display: 'none' }}
+                    onChange={e => setCorrectFile(e.target.files[0])}
+                  />
+                  {correctFile ? (
+                    <p style={{ color: '#00e676', margin: 0 }}>✅ {correctFile.name}</p>
+                  ) : (
+                    <p style={{ margin: 0, color: 'rgba(255,255,255,0.5)' }}>📄 Drag & drop or click to upload the corrected deed (PDF/Image, max 10MB)</p>
+                  )}
+                </div>
+              </div>
+
+              {correctError && (
+                <div className="error-message-box">
+                  <span className="error-icon">⚠️</span>
+                  <span>{correctError}</span>
+                </div>
+              )}
+
+              <button type="submit" className="submit-btn" disabled={correctLoading} style={{ background: 'linear-gradient(135deg, #f093fb, #f5576c)' }}>
+                {correctLoading ? '⏳ Submitting Correction...' : '✏️ Submit Correction On-Chain'}
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* ===== REGISTER TAB ===== */}
+        {activeTab === 'register' && (
+          <>
 
         {!success ? (
           <form onSubmit={handleSubmit} className="register-form">
@@ -439,9 +598,11 @@ function RegisterProperty() {
               <span className="info-icon">🛡️</span>
               <h4>Fraud Prevention</h4>
               <p>Cryptographic security eliminates the risk of forged documents</p>
-            </div>
+              </div>
           </div>
-        </div>
+          </div>
+        </>
+        )}
       </div>
     </div>
   );

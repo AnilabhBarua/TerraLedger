@@ -1,4 +1,4 @@
-import { ethers } from 'ethers';
+﻿import { ethers } from 'ethers';
 
 // Contract addresses per environment
 const CONTRACT_ADDRESS_LOCAL   = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
@@ -16,11 +16,11 @@ export const CONTRACT_ADDRESS =
  * All queryFilter calls use this as fromBlock to avoid Alchemy's free-tier
  * eth_getLogs block range limit (10 blocks from block 0 would always fail).
  */
-export const DEPLOY_BLOCK = import.meta.env.VITE_NETWORK === 'sepolia' ? 10723860 : 0;
+export const DEPLOY_BLOCK = import.meta.env.VITE_NETWORK === 'sepolia' ? 10725429 : 0;
 
 /**
  * Returns a read-only provider for fetching blockchain data.
- * Priority: MetaMask (BrowserProvider) → Public RPC (Sepolia) → Localhost fallback
+ * Priority: MetaMask (BrowserProvider) â†’ Public RPC (Sepolia) â†’ Localhost fallback
  * This allows wallet-less users (mobile, incognito) to still view all records.
  */
 export function getReadOnlyProvider() {
@@ -600,6 +600,26 @@ export const CONTRACT_ABI = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "uint256", "name": "propertyId", "type": "uint256" },
+      { "indexed": true, "internalType": "address", "name": "updatedBy", "type": "address" },
+      { "indexed": false, "internalType": "string", "name": "newDocumentHash", "type": "string" }
+    ],
+    "name": "PropertyDocumentUpdated",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_propertyId", "type": "uint256" },
+      { "internalType": "string", "name": "_newDocumentHash", "type": "string" }
+    ],
+    "name": "updatePropertyDocument",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ];

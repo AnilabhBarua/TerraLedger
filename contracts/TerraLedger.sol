@@ -59,6 +59,12 @@ contract TerraLedger is AccessControl {
         address indexed buyer
     );
 
+    event PropertyDocumentUpdated(
+        uint256 indexed propertyId,
+        address indexed updatedBy,
+        string newDocumentHash
+    );
+
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(AUTHORITY_ROLE, msg.sender);
@@ -155,4 +161,19 @@ contract TerraLedger is AccessControl {
         transferRequests[_propertyId].pending = false;
     }
     
+    /**
+     * @dev Allows a registrar to correct a property document hash.
+     *      Emits PropertyDocumentUpdated for a full on-chain audit trail.
+     * @param _propertyId The ID of the property to correct.
+     * @param _newDocumentHash The new IPFS CID of the corrected document.
+     */
+    function updatePropertyDocument(
+        uint256 _propertyId,
+        string memory _newDocumentHash
+    ) external onlyRole(REGISTRAR_ROLE) {
+        require(properties[_propertyId].isRegistered, "Property does not exist.");
+        properties[_propertyId].documentHash = _newDocumentHash;
+        emit PropertyDocumentUpdated(_propertyId, msg.sender, _newDocumentHash);
+    }
+
 }
