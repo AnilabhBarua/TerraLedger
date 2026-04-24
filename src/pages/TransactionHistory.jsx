@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider } from '../contractConfig';
+import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider, DEPLOY_BLOCK } from '../contractConfig';
 import './TransactionHistory.css';
 
 function TransactionHistory() {
@@ -10,6 +10,7 @@ function TransactionHistory() {
   const [registrationsCount, setRegistrationsCount] = useState(0);
   const [totalGasUsed, setTotalGasUsed] = useState(BigInt(0));
   const [loading, setLoading] = useState(true);
+  const [alchemyError, setAlchemyError] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -20,8 +21,15 @@ function TransactionHistory() {
         const filterReg = contract.filters.PropertyRegistered();
         const filterTrans = contract.filters.OwnershipTransferred();
 
-        const logsReg = await contract.queryFilter(filterReg, 0, 'latest');
-        const logsTrans = await contract.queryFilter(filterTrans, 0, 'latest');
+        let logsReg = [];
+        let logsTrans = [];
+        try {
+          logsReg = await contract.queryFilter(filterReg, DEPLOY_BLOCK, 'latest');
+          logsTrans = await contract.queryFilter(filterTrans, DEPLOY_BLOCK, 'latest');
+        } catch (logErr) {
+          console.warn("Alchemy free tier block limit hit.", logErr);
+          setAlchemyError(true);
+        }
 
         const regs = await Promise.all(logsReg.map(async log => {
           const block = await provider.getBlock(log.blockHash);
@@ -102,6 +110,17 @@ function TransactionHistory() {
           <h1>Transaction History</h1>
           <p>Real-time updates and complete history of all property transactions</p>
         </div>
+
+        {alchemyError && (
+          <div className="error-message-box" style={{ margin: '0 2rem 2rem 2rem' }}>
+            <span className="error-icon">⚠️</span>
+            <span>
+              <strong>Limited View:</strong> You are browsing without a Web3 wallet (MetaMask). 
+              Due to free-tier network limits, full transaction history logs cannot be loaded right now. 
+              Please connect your wallet to view the complete history.
+            </span>
+          </div>
+        )}
 
         <div className="stats-overview">
           <div className="stat-box">

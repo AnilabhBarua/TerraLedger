@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider } from '../contractConfig';
+import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider, DEPLOY_BLOCK } from '../contractConfig';
 import { verifyDocumentAgainstChain } from '../utils/verifyDocument';
 import './ImmutableRecords.css';
 
@@ -57,8 +57,13 @@ function ImmutableRecords() {
         }
         
         // Fetch registration events for hash/block info
-        const filterRegistered = contract.filters.PropertyRegistered();
-        const logsRegistered = await contract.queryFilter(filterRegistered, 0, 'latest');
+        let logsRegistered = [];
+        try {
+          const filterRegistered = contract.filters.PropertyRegistered();
+          logsRegistered = await contract.queryFilter(filterRegistered, DEPLOY_BLOCK, 'latest');
+        } catch (logErr) {
+          console.warn("Could not fetch event logs (Alchemy free tier block range limit). Proceeding without metadata.");
+        }
         
         // Merge
         const merged = await Promise.all(props.map(async prop => {

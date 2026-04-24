@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
-import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider } from '../contractConfig';
+import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider, DEPLOY_BLOCK } from '../contractConfig';
 import terraLogo from '../icons/SmallSquareLogoJpg.jpg';
 import './Dashboard.css';
 
@@ -22,13 +22,18 @@ function Dashboard() {
 
         const nextId = await contract.nextPropertyId();
         const registered = Number(nextId) > 0 ? Number(nextId) - 1 : 0;
-
-        const filter = contract.filters.OwnershipTransferred();
-        const logs = await contract.queryFilter(filter, 0, 'latest');
+        let transfersCount = '...';
+        try {
+          const filter = contract.filters.OwnershipTransferred();
+          const logs = await contract.queryFilter(filter, DEPLOY_BLOCK, 'latest');
+          transfersCount = logs.length.toString();
+        } catch (logErr) {
+          console.warn("Could not fetch transfer logs (Alchemy free tier limit).");
+        }
 
         setStats({
           properties: registered.toString(),
-          transfers: logs.length.toString(),
+          transfers: transfersCount,
           security: '100%'
         });
       } catch (err) {

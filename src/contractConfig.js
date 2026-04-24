@@ -1,3 +1,5 @@
+import { ethers } from 'ethers';
+
 // Contract addresses per environment
 const CONTRACT_ADDRESS_LOCAL   = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 const CONTRACT_ADDRESS_SEPOLIA = import.meta.env.VITE_CONTRACT_ADDRESS_SEPOLIA || "";
@@ -10,11 +12,17 @@ export const CONTRACT_ADDRESS =
     : CONTRACT_ADDRESS_LOCAL;
 
 /**
+ * Block at which the Sepolia contract was deployed.
+ * All queryFilter calls use this as fromBlock to avoid Alchemy's free-tier
+ * eth_getLogs block range limit (10 blocks from block 0 would always fail).
+ */
+export const DEPLOY_BLOCK = import.meta.env.VITE_NETWORK === 'sepolia' ? 10723860 : 0;
+
+/**
  * Returns a read-only provider for fetching blockchain data.
  * Priority: MetaMask (BrowserProvider) → Alchemy JSON-RPC (Sepolia) → Localhost fallback
  * This allows wallet-less users (mobile, incognito) to still view all records.
  */
-import { ethers } from 'ethers';
 export function getReadOnlyProvider() {
   if (window.ethereum) {
     return new ethers.BrowserProvider(window.ethereum);
