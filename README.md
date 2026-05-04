@@ -5,6 +5,8 @@
 [![Hardhat](https://img.shields.io/badge/Hardhat-Ethereum-yellow?logo=ethereum)](https://hardhat.org/)
 [![IPFS](https://img.shields.io/badge/IPFS-Pinata-65C2CB?logo=ipfs)](https://ipfs.tech/)
 
+**🌍 Live Application:** [https://terraledger.pages.dev](https://terraledger.pages.dev/)
+
 TerraLedger is a decentralized application (DApp) designed to modernize land record management by replacing centralized, paper-heavy systems with a transparent, secure, and immutable blockchain ledger. Built on the Ethereum network and leveraging IPFS for decentralized storage, it automates property registration, eliminates intermediaries, and prevents data tampering.
 
 ## 📖 Project Overview
@@ -55,11 +57,19 @@ To support citizens without crypto-wallets who wish to view public records, Terr
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 🌍 Accessing the Live Network (Sepolia Testnet)
+The project is currently deployed live on the Ethereum Sepolia testnet. 
+1. Visit the live site: [terraledger.pages.dev](https://terraledger.pages.dev/)
+2. Switch your MetaMask network to **Sepolia**.
+3. *Note: You can view the transaction history and public records without connecting a wallet, thanks to the public RPC fallback mechanism.*
+
+### 💻 Local Development Setup
+
+#### Prerequisites
 - [Node.js](https://nodejs.org/) (v18+ recommended)
 - [MetaMask](https://metamask.io/) browser extension
 
-### Installation
+#### Installation
 
 1. Clone the repository:
    ```bash
