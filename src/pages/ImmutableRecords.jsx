@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider, DEPLOY_BLOCK } from '../contractConfig';
 import { verifyDocumentAgainstChain } from '../utils/verifyDocument';
+import { fetchEventsChunked } from '../utils/chunkedProvider';
 import './ImmutableRecords.css';
 
 function ImmutableRecords() {
@@ -60,9 +61,9 @@ function ImmutableRecords() {
         let logsRegistered = [];
         try {
           const filterRegistered = contract.filters.PropertyRegistered();
-          logsRegistered = await contract.queryFilter(filterRegistered, DEPLOY_BLOCK, 'latest');
+          logsRegistered = await fetchEventsChunked(contract, filterRegistered, DEPLOY_BLOCK, provider);
         } catch (logErr) {
-          console.warn("Could not fetch event logs (Alchemy free tier block range limit). Proceeding without metadata.");
+          console.warn("Chunked event fetch failed. Proceeding without metadata.", logErr);
         }
         
         // Merge

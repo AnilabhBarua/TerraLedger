@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider, DEPLOY_BLOCK } from '../contractConfig';
+import { fetchEventsChunked } from '../utils/chunkedProvider';
 import terraLogo from '../icons/SmallSquareLogoJpg.jpg';
 import './Dashboard.css';
 
@@ -22,13 +23,13 @@ function Dashboard() {
 
         const nextId = await contract.nextPropertyId();
         const registered = Number(nextId) > 0 ? Number(nextId) - 1 : 0;
-        let transfersCount = '...';
+        let transfersCount = '0';
         try {
           const filter = contract.filters.OwnershipTransferred();
-          const logs = await contract.queryFilter(filter, DEPLOY_BLOCK, 'latest');
+          const logs = await fetchEventsChunked(contract, filter, DEPLOY_BLOCK, provider);
           transfersCount = logs.length.toString();
         } catch (logErr) {
-          console.warn("Could not fetch transfer logs (Alchemy free tier limit).");
+          console.warn("Chunked transfer log fetch failed.", logErr);
         }
 
         setStats({
