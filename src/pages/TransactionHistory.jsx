@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI, getReadOnlyProvider, DEPLOY_BLOCK } from '../contractConfig';
+import { fetchEventsChunked } from '../utils/chunkedProvider';
 import './TransactionHistory.css';
 
 function TransactionHistory() {
@@ -24,10 +25,11 @@ function TransactionHistory() {
         let logsReg = [];
         let logsTrans = [];
         try {
-          logsReg = await contract.queryFilter(filterReg, DEPLOY_BLOCK, 'latest');
-          logsTrans = await contract.queryFilter(filterTrans, DEPLOY_BLOCK, 'latest');
+          const provider2 = getReadOnlyProvider();
+          logsReg = await fetchEventsChunked(contract, contract.filters.PropertyRegistered(), DEPLOY_BLOCK, provider2);
+          logsTrans = await fetchEventsChunked(contract, contract.filters.OwnershipTransferred(), DEPLOY_BLOCK, provider2);
         } catch (logErr) {
-          console.warn("Alchemy free tier block limit hit.", logErr);
+          console.warn("Chunked event fetch failed.", logErr);
           setAlchemyError(true);
         }
 
