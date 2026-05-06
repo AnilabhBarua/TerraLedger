@@ -284,7 +284,6 @@ function TransferOwnership() {
     <div className="transfer-page">
       <div className="transfer-container">
         <div className="transfer-header">
-          <div className="header-icon">🔄</div>
           <h1>Ownership Transfers</h1>
           <p>Secure multi-step workflow for property transfers. Owners request, Registrars approve.</p>
           <div className="current-user-info">
@@ -330,7 +329,6 @@ function TransferOwnership() {
             </div>
             {errors.propertyId && (
               <div className="error-message-box">
-                <span className="error-icon">⚠️</span>
                 <span>{errors.propertyId}</span>
               </div>
             )}

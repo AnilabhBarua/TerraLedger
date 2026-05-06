@@ -20,7 +20,6 @@ function NetworkGuard() {
   return (
     <div className="network-guard" role="alert">
       <div className="network-guard__inner">
-        <div className="network-guard__icon">⚠️</div>
         <div className="network-guard__body">
           <span className="network-guard__title">Wrong Network Detected</span>
           <span className="network-guard__sub">

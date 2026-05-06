@@ -1,25 +1,13 @@
 .app {
   min-height: 100vh;
-  background: linear-gradient(180deg, #0a0e1a 0%, #1a1f35 100%);
-  color: white;
+  background:
+    linear-gradient(180deg, rgba(232, 241, 248, 0.8) 0%, rgba(245, 247, 251, 0) 260px),
+    var(--bg);
+  color: var(--text);
 }
 
 .header-icon {
-  font-size: 64px;
-  margin-bottom: 20px;
-}
-
-.header-icon:not(.fade-in) {
-  animation: bounce 2s ease-in-out infinite;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  display: none;
 }
 
 @keyframes fadeInDown {
@@ -34,36 +22,131 @@
 }
 
 .page-header {
-  text-align: center;
-  margin-bottom: 48px;
-  animation: fadeInDown 0.6s ease;
+  margin-bottom: 32px;
 }
 
 .page-header h1 {
-  font-size: 42px;
-  font-weight: 700;
-  color: #e4e6eb;
-  margin-bottom: 12px;
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1.05;
+  font-weight: 750;
+  color: var(--text);
+  margin-bottom: 10px;
 }
 
 .page-header p {
   font-size: 16px;
-  color: #9ca3af;
+  color: var(--text-muted);
   max-width: 600px;
+  line-height: 1.6;
+}
+
+.app-shell,
+.dashboard-container,
+.register-page,
+.transfer-page,
+.records-page,
+.search-page,
+.transactions-page,
+.wallet-page,
+.role-manager-page {
+  min-height: calc(100vh - 73px);
+  padding: 42px 20px 64px;
+}
+
+.register-container,
+.transfer-container,
+.records-container,
+.search-container,
+.transactions-container,
+.wallet-container,
+.role-manager-container {
+  width: min(var(--container), 100%);
   margin: 0 auto;
 }
 
+.register-header,
+.transfer-header,
+.records-header,
+.search-header,
+.transactions-header,
+.wallet-header {
+  margin: 0 0 32px;
+  max-width: 760px;
+  animation: fadeInDown 0.35s ease;
+}
+
+.register-header h1,
+.transfer-header h1,
+.records-header h1,
+.search-header h1,
+.transactions-header h1,
+.wallet-header h1 {
+  font-size: clamp(30px, 4vw, 46px);
+  line-height: 1.05;
+  font-weight: 750;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.register-header p,
+.transfer-header p,
+.records-header p,
+.search-header p,
+.transactions-header p,
+.wallet-header p {
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.error-message,
+.error-message-box {
+  color: var(--danger);
+}
+
+.input-error {
+  border-color: var(--danger) !important;
+  background: var(--danger-soft) !important;
+}
+
+.required {
+  color: var(--danger);
+}
+
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  color: var(--text-subtle);
+  font-size: 12px;
+  font-weight: 400;
+  text-transform: none;
+}
+
+.form-group label,
+.info-label,
+.detail-label,
+.summary-label,
+.record-item .label,
+.flow-label,
+.meta-item span:first-child,
+.stat-label {
+  letter-spacing: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @media (max-width: 768px) {
-  .page-header {
-    margin-bottom: 28px;
-    padding: 0 8px;
-  }
-
-  .page-header h1 {
-    font-size: 28px;
-  }
-
-  .page-header p {
-    font-size: 14px;
+  .app-shell,
+  .dashboard-container,
+  .register-page,
+  .transfer-page,
+  .records-page,
+  .search-page,
+  .transactions-page,
+  .wallet-page,
+  .role-manager-page {
+    padding: 28px 14px 48px;
   }
 }

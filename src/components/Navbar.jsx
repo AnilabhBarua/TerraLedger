@@ -19,13 +19,11 @@ function Navbar() {
     return () => clearInterval(interval);
   }, []);
 
-  // Close menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
   const isActive = (path) => location.pathname === path;
-
   const handleLinkClick = () => setMobileMenuOpen(false);
 
   return (
@@ -36,7 +34,6 @@ function Navbar() {
           <span className="logo-text">TerraLedger</span>
         </Link>
 
-        {/* Hamburger button — only visible on mobile via CSS */}
         <button
           className={`hamburger ${mobileMenuOpen ? 'hamburger--open' : ''}`}
           onClick={() => setMobileMenuOpen(prev => !prev)}
@@ -78,16 +75,15 @@ function Navbar() {
             <div
               className={`network-badge ${isCorrectNetwork ? 'network-badge--ok' : 'network-badge--wrong'}`}
               onClick={!isCorrectNetwork ? switchToCorrectNetwork : undefined}
-              title={isCorrectNetwork ? `Connected to ${networkName}` : `Wrong network — click to switch`}
+              title={isCorrectNetwork ? `Connected to ${networkName}` : 'Wrong network - click to switch'}
             >
               <span className="network-badge__dot" />
-              {isCorrectNetwork ? networkName : `Wrong Network`}
+              {isCorrectNetwork ? networkName : 'Wrong Network'}
             </div>
           )}
           <Link to="/wallet" className="wallet-button" onClick={handleLinkClick}>
-            <span className="wallet-icon">👛</span>
             <span className="wallet-text">
-              {walletAddress ? `${walletAddress.substring(0, 6)}...${walletAddress.slice(-4)}` : 'Connect'}
+              {walletAddress ? `${walletAddress.substring(0, 6)}...${walletAddress.slice(-4)}` : 'Connect Wallet'}
             </span>
           </Link>
         </div>
@@ -97,4 +93,3 @@ function Navbar() {
 }
 
 export default Navbar;
-

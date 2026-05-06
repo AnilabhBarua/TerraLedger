@@ -2,136 +2,93 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: linear-gradient(135deg, #1a1f35 0%, #0f1421 100%);
-  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(16px);
 }
 
 .navbar-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 16px 32px;
+  padding: 14px 32px;
   display: flex;
   align-items: center;
-  gap: 48px;
+  gap: 32px;
 }
 
 .logo {
   display: flex;
   align-items: center;
   gap: 12px;
+  color: var(--primary);
   text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.logo:hover {
-  transform: translateY(-2px);
 }
 
 .logo-img {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   object-fit: cover;
-  mix-blend-mode: multiply;
-  filter: contrast(1.05) saturate(1.1);
-  border: 1.5px solid rgba(67, 233, 123, 0.45);
-  box-shadow: 0 0 12px rgba(67, 233, 123, 0.3);
-  background: #fff;
-  transition: box-shadow 0.3s ease;
-}
-
-.logo:hover .logo-img {
-  box-shadow: 0 0 20px rgba(67, 233, 123, 0.55);
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
 .logo-text {
   font-size: 22px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 750;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   flex: 1;
 }
 
 .nav-link {
-  padding: 10px 18px;
-  color: #9ca3af;
+  padding: 10px 14px;
+  color: var(--text-muted);
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-  position: relative;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
-.nav-link:hover {
-  color: #e4e6eb;
-  background: rgba(102, 126, 234, 0.1);
-}
-
+.nav-link:hover,
 .nav-link.active {
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.15);
-}
-
-.nav-link.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30px;
-  height: 2px;
-  background: linear-gradient(90deg, #667eea, #764ba2);
-  border-radius: 2px;
+  color: var(--primary);
+  background: var(--primary-soft);
 }
 
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .wallet-button {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 20px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  border-radius: 12px;
-  color: #e4e6eb;
+  justify-content: center;
+  min-height: 38px;
+  padding: 9px 16px;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  color: #fff;
   text-decoration: none;
   font-size: 14px;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  font-weight: 650;
+  transition: background 0.2s ease;
+  white-space: nowrap;
 }
 
 .wallet-button:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-  border-color: #667eea;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  background: var(--primary-strong);
 }
 
-.wallet-icon {
-  font-size: 18px;
-}
-
-.wallet-text {
-  font-family: 'Courier New', monospace;
-}
-
-/* ── Hamburger Button (hidden on desktop) ────────────────────── */
 .hamburger {
   display: none;
   flex-direction: column;
@@ -141,70 +98,54 @@
   width: 40px;
   height: 40px;
   background: transparent;
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   padding: 8px;
-  transition: border-color 0.2s ease;
   order: 2;
-}
-
-.hamburger:hover {
-  border-color: rgba(102, 126, 234, 0.5);
 }
 
 .hamburger__line {
   display: block;
   width: 18px;
   height: 2px;
-  background: #e4e6eb;
+  background: var(--text);
   border-radius: 2px;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
-/* Animate to X when open */
 .hamburger--open .hamburger__line:nth-child(1) {
   transform: translateY(7px) rotate(45deg);
 }
+
 .hamburger--open .hamburger__line:nth-child(2) {
   opacity: 0;
   transform: scaleX(0);
 }
+
 .hamburger--open .hamburger__line:nth-child(3) {
   transform: translateY(-7px) rotate(-45deg);
 }
 
-/* ── Tablet adjustments ─────────────────────────────────────── */
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
   .navbar-container {
-    padding: 16px 20px;
-    gap: 24px;
-  }
-
-  .nav-links {
-    gap: 4px;
+    padding: 14px 20px;
+    gap: 18px;
   }
 
   .nav-link {
-    padding: 8px 12px;
-    font-size: 13px;
-  }
-
-  .wallet-button {
-    padding: 8px 14px;
+    padding: 8px 10px;
     font-size: 13px;
   }
 }
 
-/* ── Mobile menu ────────────────────────────────────────────── */
-@media (max-width: 768px) {
+@media (max-width: 820px) {
   .navbar-container {
     flex-wrap: wrap;
     gap: 12px;
-    padding: 14px 16px;
+    padding: 12px 16px;
   }
 
-  /* Show hamburger, hide nav-links by default */
   .hamburger {
     display: flex;
     margin-left: auto;
@@ -212,7 +153,6 @@
 
   .navbar-right {
     order: 1;
-    margin-left: 0;
   }
 
   .nav-links {
@@ -221,14 +161,12 @@
     width: 100%;
     flex-direction: column;
     gap: 4px;
-    background: rgba(15, 20, 40, 0.97);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    border-radius: 16px;
-    padding: 12px;
-    margin-top: 4px;
-    animation: mobileMenuIn 0.2s ease;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: 10px;
+    margin-top: 2px;
   }
 
   .nav-links--open {
@@ -237,44 +175,23 @@
 
   .nav-link {
     width: 100%;
-    padding: 12px 16px;
-    border-radius: 10px;
+    padding: 12px 14px;
     font-size: 15px;
-    text-align: left;
-    white-space: normal;
   }
 
-  .nav-link.active {
-    background: rgba(102, 126, 234, 0.15);
-  }
-
-  /* Hide network badge label text on very small screens */
   .network-badge {
     font-size: 11px;
     padding: 5px 8px;
-    gap: 4px;
-  }
-
-  .wallet-text {
-    display: none;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 520px) {
   .logo-text {
-    font-size: 16px;
+    font-size: 17px;
   }
 
   .wallet-button {
     padding: 8px 10px;
+    font-size: 13px;
   }
-
-  .wallet-icon {
-    font-size: 16px;
-  }
-}
-
-@keyframes mobileMenuIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
 }

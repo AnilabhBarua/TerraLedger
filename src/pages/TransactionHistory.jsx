@@ -106,14 +106,12 @@ function TransactionHistory() {
     <div className="transactions-page">
       <div className="transactions-container">
         <div className="transactions-header">
-          <div className="header-icon">📊</div>
           <h1>Transaction History</h1>
           <p>Real-time updates and complete history of all property transactions</p>
         </div>
 
         {alchemyError && (
           <div className="error-message-box" style={{ margin: '0 2rem 2rem 2rem' }}>
-            <span className="error-icon">⚠️</span>
             <span>
               <strong>Limited View:</strong> You are browsing without a Web3 wallet (MetaMask). 
               Due to free-tier network limits, full transaction history logs cannot be loaded right now. 
@@ -187,7 +185,7 @@ function TransactionHistory() {
             <div key={tx.id || index} className="transaction-item">
               <div className="tx-main">
                 <div className="tx-icon">
-                  {tx.type === 'Registration' ? '📝' : '🔄'}
+                  {tx.type === 'Registration' ? 'REG' : 'TRF'}
                 </div>
                 <div className="tx-info">
                   <div className="tx-title">
