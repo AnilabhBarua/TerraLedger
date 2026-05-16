@@ -40,22 +40,20 @@ function ImmutableRecords() {
         const provider = getReadOnlyProvider();
         const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
         
-        // Fetch properties
+        // Fetch all properties concurrently
         const nextId = await contract.nextPropertyId();
-        const props = [];
-        for (let i = 1; i < Number(nextId); i++) {
-          const p = await contract.properties(i);
-          if (p.isRegistered) {
-            props.push({ 
-                propertyId: Number(p.propertyId),
-                owner: p.owner,
-                location: p.location,
-                area: p.area,
-                type: p.propertyType,
-                documentHash: p.documentHash || ''
-            });
-          }
-        }
+        const ids = Array.from({ length: Number(nextId) - 1 }, (_, i) => i + 1);
+        const rawProps = await Promise.all(ids.map(i => contract.properties(i)));
+        const props = rawProps
+          .filter(p => p.isRegistered)
+          .map(p => ({
+            propertyId: Number(p.propertyId),
+            owner: p.owner,
+            location: p.location,
+            area: p.area,
+            type: p.propertyType,
+            documentHash: p.documentHash || '',
+          }));
         
         // Fetch registration events for hash/block info
         let logsRegistered = [];
