@@ -19,21 +19,24 @@ function PropertySearch() {
         const provider = getReadOnlyProvider();
         const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
         const nextId = await contract.nextPropertyId();
-        const props = [];
-        for (let i = 1; i < Number(nextId); i++) {
-          const p = await contract.properties(i);
-          if (p.isRegistered) {
-            props.push({
+        const ids = Array.from({ length: Number(nextId) - 1 }, (_, i) => i + 1);
+
+        const results = await Promise.all(
+          ids.map(async (i) => {
+            const p = await contract.properties(i);
+            if (!p.isRegistered) return null;
+            return {
               propertyId: Number(p.propertyId),
               owner: p.owner,
               location: p.location,
               area: p.area,
               type: p.propertyType,
-              registrationDate: new Date()
-            });
-          }
-        }
-        setAllProperties(props);
+              registrationDate: new Date(),
+            };
+          })
+        );
+
+        setAllProperties(results.filter(Boolean));
       } catch (err) {
         console.error("Error fetching properties:", err);
       } finally {

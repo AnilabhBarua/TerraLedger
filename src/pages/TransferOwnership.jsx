@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
 import { useToast } from '../components/Toast';
+import useWalletRoles from '../hooks/useWalletRoles';
 import './TransferOwnership.css';
 
 function TransferOwnership() {
@@ -17,9 +18,7 @@ function TransferOwnership() {
   const [userProperties, setUserProperties] = useState([]);
   const [pendingApprovals, setPendingApprovals] = useState([]);
 
-  const currentUserAddress = localStorage.getItem('wallet_user_address') || 'Not Connected';
-  const userIsRegistrar = localStorage.getItem('wallet_is_registrar') === 'true' || localStorage.getItem('wallet_is_admin') === 'true';
-
+  const { address: currentUserAddress, isRegistrar: userIsRegistrar } = useWalletRoles();
   const { addToast, updateToast } = useToast();
 
   const fetchProps = async () => {
@@ -28,12 +27,16 @@ function TransferOwnership() {
     const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
     try {
       const nextId = await contract.nextPropertyId();
-      const props = [];
-      for (let i = 1; i < Number(nextId); i++) {
-        const p = await contract.properties(i);
-        if (p.isRegistered) {
-          const req = await contract.transferRequests(i);
-          props.push({
+      const ids = Array.from({ length: Number(nextId) - 1 }, (_, i) => i + 1);
+
+      const results = await Promise.all(
+        ids.map(async (i) => {
+          const [p, req] = await Promise.all([
+            contract.properties(i),
+            contract.transferRequests(i),
+          ]);
+          if (!p.isRegistered) return null;
+          return {
             propertyId: Number(p.propertyId),
             owner: p.owner,
             location: p.location,
@@ -41,15 +44,19 @@ function TransferOwnership() {
             type: p.propertyType,
             registrationDate: new Date(),
             isPending: req.pending,
-            buyer: req.buyer
-          });
-        }
-      }
+            buyer: req.buyer,
+          };
+        })
+      );
+
+      const props = results.filter(Boolean);
       setAllProperties(props);
-      if (currentUserAddress !== 'Not Connected') {
-        setUserProperties(props.filter(p => p.owner.toLowerCase() === currentUserAddress.toLowerCase()));
+      if (currentUserAddress) {
+        setUserProperties(
+          props.filter((p) => p.owner.toLowerCase() === currentUserAddress.toLowerCase())
+        );
       }
-      setPendingApprovals(props.filter(p => p.isPending));
+      setPendingApprovals(props.filter((p) => p.isPending));
     } catch (err) { console.error(err); }
   };
 

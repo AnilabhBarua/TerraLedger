@@ -38,25 +38,23 @@ function ImmutableRecords() {
       try {
         const provider = getReadOnlyProvider();
         const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-        
-        // Fetch properties
+
+        // Fetch all properties concurrently
         const nextId = await contract.nextPropertyId();
-        const props = [];
-        for (let i = 1; i < Number(nextId); i++) {
-          const p = await contract.properties(i);
-          if (p.isRegistered) {
-            props.push({ 
-                propertyId: Number(p.propertyId),
-                owner: p.owner,
-                location: p.location,
-                area: p.area,
-                type: p.propertyType,
-                documentHash: p.documentHash || ''
-            });
-          }
-        }
-        
-        // Fetch registration events for hash/block info
+        const ids = Array.from({ length: Number(nextId) - 1 }, (_, i) => i + 1);
+        const rawProps = await Promise.all(ids.map(i => contract.properties(i)));
+        const props = rawProps
+          .filter(p => p.isRegistered)
+          .map(p => ({
+            propertyId: Number(p.propertyId),
+            owner: p.owner,
+            location: p.location,
+            area: p.area,
+            type: p.propertyType,
+            documentHash: p.documentHash || '',
+          }));
+
+        // Fetch registration events for timestamp/block info
         let logsRegistered = [];
         try {
           const filterRegistered = contract.filters.PropertyRegistered();
@@ -64,28 +62,28 @@ function ImmutableRecords() {
         } catch (logErr) {
           console.warn("Could not fetch event logs (Alchemy free tier block range limit). Proceeding without metadata.");
         }
-        
-        // Merge
+
+        // Merge property data with event log metadata
         const merged = await Promise.all(props.map(async prop => {
-           const log = logsRegistered.find(l => Number(l.args[0]) === prop.propertyId);
-           let timestamp = new Date();
-           if (log) {
-               const block = await provider.getBlock(log.blockHash);
-               timestamp = new Date(block.timestamp * 1000);
-           }
-           return {
-             ...prop,
-             transactionHash: log ? log.transactionHash : 'Unknown',
-             blockNumber: log ? log.blockNumber : 0,
-             registrationDate: timestamp
-           };
+          const log = logsRegistered.find(l => Number(l.args[0]) === prop.propertyId);
+          let timestamp = new Date();
+          if (log) {
+            const block = await provider.getBlock(log.blockHash);
+            timestamp = new Date(block.timestamp * 1000);
+          }
+          return {
+            ...prop,
+            transactionHash: log ? log.transactionHash : 'Unknown',
+            blockNumber: log ? log.blockNumber : 0,
+            registrationDate: timestamp,
+          };
         }));
-        
+
         setRecords(merged);
-      } catch (err) { 
-          console.error(err); 
+      } catch (err) {
+        console.error(err);
       } finally {
-          setLoading(false);
+        setLoading(false);
       }
     };
     fetchProps();
@@ -97,7 +95,7 @@ function ImmutableRecords() {
     const blockNumbers = [...new Set(records.map(r => r.blockNumber).filter(b => b > 0))];
     if (blockNumbers.length === 0) return null;
 
-    return blockNumbers.slice(0, 5).map((block, index) => {
+    return blockNumbers.slice(0, 5).map((block) => {
       const txCount = records.filter(r => r.blockNumber === block).length;
       return (
         <div key={block} className="block">

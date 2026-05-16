@@ -3,6 +3,7 @@ import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
 import { uploadToPinata } from '../utils/pinata';
 import { useToast } from '../components/Toast';
+import useWalletRoles from '../hooks/useWalletRoles';
 import './RegisterProperty.css';
 
 function RegisterProperty() {
@@ -23,10 +24,8 @@ function RegisterProperty() {
   const [correctError, setCorrectError] = useState('');
 
   const { addToast, updateToast } = useToast();
-  const userIsAdmin = localStorage.getItem('wallet_is_admin') === 'true';
-  const userIsRegistrar = localStorage.getItem('wallet_is_registrar') === 'true';
+  const { address: currentUserAddress, isAdmin: userIsAdmin, isRegistrar: userIsRegistrar, loading: rolesLoading } = useWalletRoles();
   const canRegister = userIsAdmin || userIsRegistrar;
-  const currentUserAddress = localStorage.getItem('wallet_user_address') || 'Not Connected';
 
   const isValidEthereumAddress = (address) => /^0x[a-fA-F0-9]{40}$/.test(address);
 
@@ -169,6 +168,16 @@ function RegisterProperty() {
     }
   };
 
+  if (rolesLoading) {
+    return (
+      <div className="register-page">
+        <div className="register-container">
+          <p style={{ textAlign: 'center', padding: '3rem' }}>Verifying on-chain permissions…</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!canRegister) {
     return (
       <div className="register-page">
@@ -178,7 +187,7 @@ function RegisterProperty() {
             <p>Only authorized land registrars can register or correct property documents.</p>
             <div className="admin-info">
               <p>Your connected address</p>
-              <code>{currentUserAddress}</code>
+              <code>{currentUserAddress || 'Not Connected'}</code>
             </div>
             <p className="hint">Connect an authorized wallet to access this workflow.</p>
           </div>
