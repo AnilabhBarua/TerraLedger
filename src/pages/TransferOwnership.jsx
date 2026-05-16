@@ -295,7 +295,7 @@ function TransferOwnership() {
           <p>Secure multi-step workflow for property transfers. Owners request, Registrars approve.</p>
           <div className="current-user-info">
             <span className="user-label">Connected as:</span>
-            <code>{currentUserAddress !== 'Not Connected' ? `${currentUserAddress.slice(0, 6)}...${currentUserAddress.slice(-4)}` : 'Not Connected'}</code>
+            <code>{currentUserAddress ? `${currentUserAddress.slice(0, 6)}...${currentUserAddress.slice(-4)}` : 'Not Connected'}</code>
           </div>
         </div>
 
