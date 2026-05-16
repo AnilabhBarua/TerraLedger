@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../contractConfig';
 import { useToast } from '../components/Toast';
+import useWalletRoles from '../hooks/useWalletRoles';
 import './RoleManager.css';
 
 function RoleManager() {
@@ -9,7 +10,7 @@ function RoleManager() {
   const [loading, setLoading] = useState(false);
 
   const { addToast, updateToast } = useToast();
-  const userIsAdmin = localStorage.getItem('wallet_is_admin') === 'true';
+  const { isAdmin: userIsAdmin, loading: rolesLoading } = useWalletRoles();
 
   const handleRoleAction = async (action) => {
     if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
@@ -57,6 +58,16 @@ function RoleManager() {
       setLoading(false);
     }
   };
+
+  if (rolesLoading) {
+    return (
+      <div className="role-manager-page">
+        <div className="access-denied">
+          <p>Verifying on-chain permissions…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!userIsAdmin) {
     return (

@@ -65,10 +65,17 @@ contract TerraLedger is AccessControl {
         string newDocumentHash
     );
 
+    event TransferCancelled(
+        uint256 indexed propertyId,
+        address indexed cancelledBy
+    );
+
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(AUTHORITY_ROLE, msg.sender);
         _grantRole(REGISTRAR_ROLE, msg.sender);
+        // Authority manages who is a Registrar
+        _setRoleAdmin(REGISTRAR_ROLE, AUTHORITY_ROLE);
     }
 
     function addRegistrar(address account) external onlyRole(AUTHORITY_ROLE) {
@@ -80,12 +87,15 @@ contract TerraLedger is AccessControl {
     }
 
     function registerProperty(
-        address _propertyOwner, 
-        string memory _location, 
-        string memory _area, 
+        address _propertyOwner,
+        string memory _location,
+        string memory _area,
         string memory _propertyType,
         string memory _documentHash
     ) external onlyRole(REGISTRAR_ROLE) {
+        require(_propertyOwner != address(0), "Invalid owner address.");
+        require(bytes(_location).length > 0, "Location cannot be empty.");
+        require(bytes(_area).length > 0, "Area cannot be empty.");
         uint256 newPropertyId = nextPropertyId;
         properties[newPropertyId] = Property(
             newPropertyId,
@@ -137,28 +147,29 @@ contract TerraLedger is AccessControl {
     function approveTransfer(uint256 _propertyId) external onlyRole(REGISTRAR_ROLE) {
         TransferRequest storage request = transferRequests[_propertyId];
         require(request.pending, "No pending transfer request.");
-        
+
         Property storage property = properties[_propertyId];
         address oldOwner = property.owner;
         address newOwner = request.buyer;
 
         property.owner = newOwner;
-        request.pending = false;
+        delete transferRequests[_propertyId];
 
         emit TransferApproved(_propertyId, oldOwner, newOwner);
         emit OwnershipTransferred(_propertyId, oldOwner, newOwner);
     }
 
     /**
-     * @dev Allows the owner or a registrar to cancel a pending transfer testtt.
+     * @dev Allows the owner or a registrar to cancel a pending transfer request.
      * @param _propertyId The ID of the property.
      */
     function cancelTransfer(uint256 _propertyId) external {
         Property storage property = properties[_propertyId];
         require(msg.sender == property.owner || hasRole(REGISTRAR_ROLE, msg.sender), "Not owner or registrar.");
         require(transferRequests[_propertyId].pending, "No pending transfer.");
-        
-        transferRequests[_propertyId].pending = false;
+
+        delete transferRequests[_propertyId];
+        emit TransferCancelled(_propertyId, msg.sender);
     }
     
     /**
