@@ -29,6 +29,11 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --container: 1180px;
+  /* App background — light mode: gentle top wash */
+  --app-bg:
+    linear-gradient(180deg, rgba(232, 241, 248, 0.75) 0%, rgba(245, 247, 251, 0) 280px),
+    #f5f7fb;
+  --navbar-bg: rgba(255, 255, 255, 0.88);
 }
 
 /* ── Dark Mode ── */
@@ -53,6 +58,13 @@
   --danger-soft: #3b1214;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.5);
+  /* App background — dark mode: radial mesh glow, no white gradients */
+  --app-bg:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(79, 156, 219, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(63, 184, 114, 0.05) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 60% at 50% 100%, rgba(79, 156, 219, 0.04) 0%, transparent 50%),
+    #0d1117;
+  --navbar-bg: rgba(13, 17, 23, 0.88);
 }
 
 /* Smooth color transitions when switching themes */

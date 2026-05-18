@@ -1,8 +1,6 @@
 .app {
   min-height: 100vh;
-  background:
-    linear-gradient(180deg, rgba(232, 241, 248, 0.8) 0%, rgba(245, 247, 251, 0) 260px),
-    var(--bg);
+  background: var(--app-bg);
   color: var(--text);
 }
 

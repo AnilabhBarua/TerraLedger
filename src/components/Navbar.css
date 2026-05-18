@@ -2,11 +2,11 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(var(--surface-rgb, 255, 255, 255), 0.94);
+  background: var(--navbar-bg, rgba(255, 255, 255, 0.92));
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(16px);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .navbar-container {
