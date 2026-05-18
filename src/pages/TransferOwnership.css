@@ -325,12 +325,33 @@
     text-align: center;
   }
 
-  .input-group,
+  .input-group {
+    grid-template-columns: 1fr;
+  }
+
   .detail-row {
     grid-template-columns: 1fr;
+    gap: 4px;
   }
 
   .button-group {
     flex-direction: column;
+  }
+
+  .step-content,
+  .current-property,
+  .transaction-details,
+  .no-properties {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .properties-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .step-label {
+    font-size: 11px;
   }
 }

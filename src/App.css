@@ -145,6 +145,20 @@
   .transactions-page,
   .wallet-page,
   .role-manager-page {
-    padding: 28px 14px 48px;
+    padding: 24px 14px 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-shell,
+  .dashboard-container,
+  .register-page,
+  .transfer-page,
+  .records-page,
+  .search-page,
+  .transactions-page,
+  .wallet-page,
+  .role-manager-page {
+    padding: 16px 10px 40px;
   }
 }

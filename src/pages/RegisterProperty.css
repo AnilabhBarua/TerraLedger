@@ -345,15 +345,34 @@
   .form-row,
   .summary-grid,
   .info-grid,
-  .tab-switcher,
   .detail-row {
     grid-template-columns: 1fr;
+  }
+
+  .detail-row {
+    gap: 4px;
+  }
+
+  .tab-switcher {
+    grid-template-columns: 1fr 1fr;
   }
 
   .register-form,
   .success-container,
   .info-section,
   .access-denied {
-    padding: 20px;
+    padding: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-form,
+  .success-container,
+  .info-section {
+    padding: 14px;
+  }
+
+  .tab-switcher {
+    grid-template-columns: 1fr;
   }
 }

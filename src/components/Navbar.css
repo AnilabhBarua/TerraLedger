@@ -143,18 +143,14 @@
 @media (max-width: 820px) {
   .navbar-container {
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
     padding: 12px 16px;
   }
 
-  .hamburger {
-    display: flex;
-    margin-left: auto;
-  }
-
-  .navbar-right {
-    order: 1;
-  }
+  /* Logo stays left, navbar-right (wallet+toggle) goes right, hamburger at end */
+  .logo { order: 1; }
+  .navbar-right { order: 2; margin-left: auto; }
+  .hamburger { order: 3; display: flex; }
 
   .nav-links {
     display: none;
@@ -187,12 +183,34 @@
 }
 
 @media (max-width: 520px) {
+  .navbar-container {
+    padding: 10px 12px;
+  }
+
   .logo-text {
     font-size: 17px;
   }
 
   .wallet-button {
-    padding: 8px 10px;
-    font-size: 13px;
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+
+  /* Hide network badge text on tiny screens, show just the dot */
+  .network-badge {
+    font-size: 0;
+    padding: 9px;
+    gap: 0;
+  }
+
+  .network-badge__dot {
+    margin: 0;
+  }
+
+  .theme-toggle {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
   }
 }
+
