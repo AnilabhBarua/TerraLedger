@@ -39,7 +39,7 @@ function ImmutableRecords() {
       try {
         const provider = getReadOnlyProvider();
         const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, provider);
-        
+
         // Fetch all properties concurrently
         const nextId = await contract.nextPropertyId();
         const ids = Array.from({ length: Number(nextId) - 1 }, (_, i) => i + 1);
@@ -54,8 +54,8 @@ function ImmutableRecords() {
             type: p.propertyType,
             documentHash: p.documentHash || '',
           }));
-        
-        // Fetch registration events for hash/block info
+
+        // Fetch registration events for timestamp/block info
         let logsRegistered = [];
         try {
           const filterRegistered = contract.filters.PropertyRegistered();
@@ -63,28 +63,28 @@ function ImmutableRecords() {
         } catch (logErr) {
           console.warn("Chunked event fetch failed. Proceeding without metadata.", logErr);
         }
-        
-        // Merge
+
+        // Merge property data with event log metadata
         const merged = await Promise.all(props.map(async prop => {
-           const log = logsRegistered.find(l => Number(l.args[0]) === prop.propertyId);
-           let timestamp = new Date();
-           if (log) {
-               const block = await provider.getBlock(log.blockHash);
-               timestamp = new Date(block.timestamp * 1000);
-           }
-           return {
-             ...prop,
-             transactionHash: log ? log.transactionHash : 'Unknown',
-             blockNumber: log ? log.blockNumber : 0,
-             registrationDate: timestamp
-           };
+          const log = logsRegistered.find(l => Number(l.args[0]) === prop.propertyId);
+          let timestamp = new Date();
+          if (log) {
+            const block = await provider.getBlock(log.blockHash);
+            timestamp = new Date(block.timestamp * 1000);
+          }
+          return {
+            ...prop,
+            transactionHash: log ? log.transactionHash : 'Unknown',
+            blockNumber: log ? log.blockNumber : 0,
+            registrationDate: timestamp,
+          };
         }));
-        
+
         setRecords(merged);
-      } catch (err) { 
-          console.error(err); 
+      } catch (err) {
+        console.error(err);
       } finally {
-          setLoading(false);
+        setLoading(false);
       }
     };
     fetchProps();
@@ -96,7 +96,7 @@ function ImmutableRecords() {
     const blockNumbers = [...new Set(records.map(r => r.blockNumber).filter(b => b > 0))];
     if (blockNumbers.length === 0) return null;
 
-    return blockNumbers.slice(0, 5).map((block, index) => {
+    return blockNumbers.slice(0, 5).map((block) => {
       const txCount = records.filter(r => r.blockNumber === block).length;
       return (
         <div key={block} className="block">
@@ -115,7 +115,6 @@ function ImmutableRecords() {
     <div className="records-page">
       <div className="records-container">
         <div className="records-header">
-          <div className="header-icon">🔒</div>
           <h1>Immutable Blockchain Records</h1>
           <p>Permanent, tamper-proof property records secured by real blockchain technology</p>
         </div>
@@ -195,7 +194,6 @@ function ImmutableRecords() {
                     {/* ── Document Verification Panel ── */}
                     <div className="verify-panel">
                       <div className="verify-header">
-                        <span className="verify-icon">🔍</span>
                         <span>Verify Document Authenticity</span>
                       </div>
                       <p className="verify-hint">
@@ -231,8 +229,8 @@ function ImmutableRecords() {
                         <div className={`verify-result ${verifyState[property.propertyId].result.isMatch ? 'authentic' : 'tampered'}`}>
                           <div className="verify-result-title">
                             {verifyState[property.propertyId].result.isMatch
-                              ? '✅ Document is AUTHENTIC'
-                              : '❌ Document is TAMPERED / MISMATCH'}
+                              ? 'Document is authentic'
+                              : 'Document mismatch detected'}
                           </div>
                           <div className="verify-hashes">
                             <div className="hash-row">
@@ -249,7 +247,7 @@ function ImmutableRecords() {
 
                       {verifyState[property.propertyId]?.status === 'error' && (
                         <div className="verify-result tampered">
-                          ⚠️ {verifyState[property.propertyId].error}
+                          {verifyState[property.propertyId].error}
                         </div>
                       )}
                     </div>
@@ -259,7 +257,6 @@ function ImmutableRecords() {
 
               <div className="record-footer">
                 <div className="immutable-badge">
-                  <span className="lock-icon">🔒</span>
                   Permanently Recorded
                 </div>
               </div>
@@ -271,22 +268,18 @@ function ImmutableRecords() {
           <h2>What Makes These Records Immutable?</h2>
           <div className="info-grid">
             <div className="info-item">
-              <div className="info-icon">⛓️</div>
               <h3>Blockchain Technology</h3>
               <p>Records are stored across a distributed network of computers, making unauthorized changes impossible</p>
             </div>
             <div className="info-item">
-              <div className="info-icon">🔐</div>
               <h3>Cryptographic Hashing</h3>
               <p>Each record is secured with cryptographic algorithms that detect any tampering attempts</p>
             </div>
             <div className="info-item">
-              <div className="info-icon">📜</div>
               <h3>Complete History</h3>
               <p>Every change is recorded permanently, creating an auditable trail of ownership</p>
             </div>
             <div className="info-item">
-              <div className="info-icon">🌐</div>
               <h3>Global Verification</h3>
               <p>Anyone can verify the authenticity of records from anywhere in the world</p>
             </div>

@@ -291,12 +291,11 @@ function TransferOwnership() {
     <div className="transfer-page">
       <div className="transfer-container">
         <div className="transfer-header">
-          <div className="header-icon">🔄</div>
           <h1>Ownership Transfers</h1>
           <p>Secure multi-step workflow for property transfers. Owners request, Registrars approve.</p>
           <div className="current-user-info">
             <span className="user-label">Connected as:</span>
-            <code>{currentUserAddress !== 'Not Connected' ? `${currentUserAddress.slice(0, 6)}...${currentUserAddress.slice(-4)}` : 'Not Connected'}</code>
+            <code>{currentUserAddress ? `${currentUserAddress.slice(0, 6)}...${currentUserAddress.slice(-4)}` : 'Not Connected'}</code>
           </div>
         </div>
 
@@ -337,7 +336,6 @@ function TransferOwnership() {
             </div>
             {errors.propertyId && (
               <div className="error-message-box">
-                <span className="error-icon">⚠️</span>
                 <span>{errors.propertyId}</span>
               </div>
             )}

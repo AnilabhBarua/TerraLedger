@@ -38,7 +38,7 @@ function Dashboard() {
           security: '100%'
         });
       } catch (err) {
-        console.error("Dashboard stats error:", err);
+        console.error('Dashboard stats error:', err);
       }
     };
     fetchStats();
@@ -47,136 +47,131 @@ function Dashboard() {
   const features = [
     {
       id: 1,
-      title: 'Property Registration',
-      description: 'Register new properties on the blockchain with complete transparency and security',
-      icon: '📝',
-      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      title: 'Register Property',
+      description: 'Create a verified digital land title with owner, location, area, type, and document hash.',
       path: '/register'
     },
     {
       id: 2,
-      title: 'Ownership Transfer',
-      description: 'Securely transfer property ownership with cryptographic verification',
-      icon: '🔄',
-      color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      title: 'Transfer Ownership',
+      description: 'Start owner-led transfers and route approvals through authorized land registrars.',
       path: '/transfer'
     },
     {
       id: 3,
       title: 'Immutable Records',
-      description: 'View permanent, tamper-proof blockchain records of all properties',
-      icon: '🔒',
-      color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      description: 'Review permanent blockchain records, block metadata, and IPFS deed references.',
       path: '/records'
     },
     {
       id: 4,
-      title: 'Property Search',
-      description: 'Search and verify any registered property by ID or owner address',
-      icon: '🔍',
-      color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+      title: 'Search Registry',
+      description: 'Verify a title by property ID, owner wallet address, or registered location.',
       path: '/search'
     },
     {
       id: 5,
-      title: 'Transaction History',
-      description: 'Real-time updates and complete history of all property transactions',
-      icon: '📊',
-      color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+      title: 'Audit Transactions',
+      description: 'Inspect registrations, transfers, gas usage, blocks, and confirmation status.',
       path: '/transactions'
     },
     {
       id: 6,
-      title: 'Wallet Authentication',
-      description: 'Secure wallet-based authentication for property owners and admins',
-      icon: '👛',
-      color: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+      title: 'Wallet Access',
+      description: 'Connect a wallet and check role-based permissions for citizens and officials.',
       path: '/wallet'
     }
   ];
 
   return (
     <div className="dashboard-container">
-      <div className="dashboard-hero">
-        <div className="hero-content">
-          <div className="hero-logo-wrap">
-            <img src={terraLogo} alt="TerraLedger Logo" className="hero-logo" />
-          </div>
-          <h1 className="hero-title">
-            <span className="gradient-text">TerraLedger</span>
-          </h1>
-          <p className="hero-subtitle">
-            Revolutionizing Land Registry with Blockchain Technology
+      <section className="dashboard-hero">
+        <div className="hero-copy">
+          <div className="hero-kicker">Blockchain Based Land Registry for India</div>
+          <h1>Transparent land records with verifiable ownership history.</h1>
+          <p>
+            TerraLedger provides a professional registry workflow for property registration,
+            transfers, document verification, and public audit trails secured on blockchain.
           </p>
-          <p className="hero-description">
-            Experience the future of property ownership with transparent, secure, and immutable blockchain records
-          </p>
-        </div>
-
-        <div className="hero-stats">
-          <div className="stat-card">
-            <div className="stat-value">{stats.properties}</div>
-            <div className="stat-label">Properties Registered</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{stats.transfers}</div>
-            <div className="stat-label">Transfers Completed</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{stats.security}</div>
-            <div className="stat-label">Secure & Verified</div>
+          <div className="hero-actions">
+            <button type="button" onClick={() => navigate('/search')} className="primary-action">
+              Verify Property
+            </button>
+            <button type="button" onClick={() => navigate('/register')} className="secondary-action">
+              Register Title
+            </button>
           </div>
         </div>
-      </div>
+        <div className="hero-panel" aria-label="Registry overview">
+          <div className="hero-panel-header">
+            <img src={terraLogo} alt="" className="hero-logo" />
+            <div>
+              <span>TerraLedger Registry</span>
+              <strong>India land title ledger</strong>
+            </div>
+          </div>
+          <div className="hero-stats">
+            <div className="stat-card">
+              <div className="stat-value">{stats.properties}</div>
+              <div className="stat-label">Registered Properties</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{stats.transfers}</div>
+              <div className="stat-label">Completed Transfers</div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-value">{stats.security}</div>
+              <div className="stat-label">On-chain Verification</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <div className="features-section">
-        <h2 className="section-title">Explore Features</h2>
+      <section className="features-section">
+        <div className="section-heading">
+          <h2>Registry Workflows</h2>
+          <p>Core tasks are organized around officials, owners, and public verification.</p>
+        </div>
         <div className="features-grid">
           {features.map((feature) => (
-            <div
+            <button
               key={feature.id}
+              type="button"
               className="feature-card"
               onClick={() => navigate(feature.path)}
             >
-              <div className="feature-icon" style={{ background: feature.color }}>
-                <span>{feature.icon}</span>
-              </div>
-              <h3 className="feature-title">{feature.title}</h3>
-              <p className="feature-description">{feature.description}</p>
-              <button className="feature-button">
-                Explore
-                <span className="arrow">→</span>
-              </button>
-            </div>
+              <span className="feature-number">{String(feature.id).padStart(2, '0')}</span>
+              <h3>{feature.title}</h3>
+              <p>{feature.description}</p>
+              <span className="feature-link">Open workflow</span>
+            </button>
           ))}
         </div>
-      </div>
+      </section>
 
-      <div className="benefits-section">
-        <h2 className="section-title">Why TerraLedger?</h2>
+      <section className="benefits-section">
+        <div className="section-heading">
+          <h2>Designed For Public Trust</h2>
+        </div>
         <div className="benefits-grid">
           <div className="benefit-card">
-            <div className="benefit-icon">🛡️</div>
-            <h3>Fraud Prevention</h3>
-            <p>Cryptographic security eliminates the possibility of forged or altered records</p>
+            <h3>Registrar Oversight</h3>
+            <p>Role-controlled workflows keep title creation and approvals with authorized officials.</p>
           </div>
           <div className="benefit-card">
-            <div className="benefit-icon">⚡</div>
-            <h3>Instant Verification</h3>
-            <p>Real-time property verification without intermediaries or delays</p>
+            <h3>Document Integrity</h3>
+            <p>IPFS references and hash checks support deed verification without exposing private custody.</p>
           </div>
           <div className="benefit-card">
-            <div className="benefit-icon">🌍</div>
-            <h3>Global Access</h3>
-            <p>Access property records from anywhere in the world, 24/7</p>
+            <h3>Public Audit Trail</h3>
+            <p>Every registration and ownership movement can be traced to a transaction and block.</p>
           </div>
           <div className="benefit-card">
-            <div className="benefit-icon">💎</div>
-            <h3>Transparency</h3>
-            <p>Complete ownership history visible and auditable on the blockchain</p>
+            <h3>Citizen Access</h3>
+            <p>Search and verification stay simple for owners, buyers, lenders, and local offices.</p>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

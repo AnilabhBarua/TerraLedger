@@ -11,6 +11,7 @@ import TransactionHistory from './pages/TransactionHistory';
 import WalletAuth from './pages/WalletAuth';
 import RoleManager from './pages/RoleManager';
 import { ToastProvider } from './components/Toast';
+import { ThemeProvider } from './context/ThemeContext';
 import './App.css';
 
 function App() {
@@ -37,24 +38,26 @@ function App() {
   }, []);
 
   return (
-    <ToastProvider>
-      <Router>
-        <div className="app">
-          <Navbar />
-          <NetworkGuard />
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/register" element={<RegisterProperty />} />
-            <Route path="/transfer" element={<TransferOwnership />} />
-            <Route path="/records" element={<ImmutableRecords />} />
-            <Route path="/search" element={<PropertySearch />} />
-            <Route path="/transactions" element={<TransactionHistory />} />
-            <Route path="/wallet" element={<WalletAuth />} />
-            <Route path="/roles" element={<RoleManager />} />
-          </Routes>
-        </div>
-      </Router>
-    </ToastProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <Router>
+          <div className="app">
+            <Navbar />
+            <NetworkGuard />
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/register" element={<RegisterProperty />} />
+              <Route path="/transfer" element={<TransferOwnership />} />
+              <Route path="/records" element={<ImmutableRecords />} />
+              <Route path="/search" element={<PropertySearch />} />
+              <Route path="/transactions" element={<TransactionHistory />} />
+              <Route path="/wallet" element={<WalletAuth />} />
+              <Route path="/roles" element={<RoleManager />} />
+            </Routes>
+          </div>
+        </Router>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
 

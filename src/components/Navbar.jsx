@@ -1,31 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import useNetwork from '../hooks/useNetwork';
+import { useTheme } from '../context/ThemeContext';
+import useWalletRoles from '../hooks/useWalletRoles';
 import terraLogo from '../icons/SmallSquareLogoJpg.jpg';
 import './Navbar.css';
 
 function Navbar() {
   const location = useLocation();
-  const [walletAddress, setWalletAddress] = useState(localStorage.getItem('wallet_user_address'));
-  const [userIsAdmin, setUserIsAdmin] = useState(localStorage.getItem('wallet_is_admin') === 'true');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { chainId, isCorrectNetwork, networkName, switchToCorrectNetwork } = useNetwork();
+  const { theme, toggleTheme } = useTheme();
+  const { address: walletAddress, isAdmin: userIsAdmin } = useWalletRoles();
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setWalletAddress(localStorage.getItem('wallet_user_address'));
-      setUserIsAdmin(localStorage.getItem('wallet_is_admin') === 'true');
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Close menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
   const isActive = (path) => location.pathname === path;
-
   const handleLinkClick = () => setMobileMenuOpen(false);
 
   return (
@@ -36,7 +28,6 @@ function Navbar() {
           <span className="logo-text">TerraLedger</span>
         </Link>
 
-        {/* Hamburger button — only visible on mobile via CSS */}
         <button
           className={`hamburger ${mobileMenuOpen ? 'hamburger--open' : ''}`}
           onClick={() => setMobileMenuOpen(prev => !prev)}
@@ -78,16 +69,23 @@ function Navbar() {
             <div
               className={`network-badge ${isCorrectNetwork ? 'network-badge--ok' : 'network-badge--wrong'}`}
               onClick={!isCorrectNetwork ? switchToCorrectNetwork : undefined}
-              title={isCorrectNetwork ? `Connected to ${networkName}` : `Wrong network — click to switch`}
+              title={isCorrectNetwork ? `Connected to ${networkName}` : 'Wrong network - click to switch'}
             >
               <span className="network-badge__dot" />
-              {isCorrectNetwork ? networkName : `Wrong Network`}
+              {isCorrectNetwork ? networkName : 'Wrong Network'}
             </div>
           )}
+          <button
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
           <Link to="/wallet" className="wallet-button" onClick={handleLinkClick}>
-            <span className="wallet-icon">👛</span>
             <span className="wallet-text">
-              {walletAddress ? `${walletAddress.substring(0, 6)}...${walletAddress.slice(-4)}` : 'Connect'}
+              {walletAddress ? `${walletAddress.substring(0, 6)}...${walletAddress.slice(-4)}` : 'Connect Wallet'}
             </span>
           </Link>
         </div>
@@ -97,4 +95,3 @@ function Navbar() {
 }
 
 export default Navbar;
-

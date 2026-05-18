@@ -116,7 +116,6 @@ function WalletAuth() {
     <div className="wallet-page">
       <div className="wallet-container">
         <div className="wallet-header">
-          <div className="header-icon">👛</div>
           <h1>Wallet Authentication</h1>
           <p>Secure, decentralized authentication using blockchain wallet technology</p>
         </div>
@@ -140,7 +139,6 @@ function WalletAuth() {
                   </>
                 ) : (
                   <>
-                    <span>👛</span>
                     Connect Wallet
                   </>
                 )}
@@ -170,22 +168,18 @@ function WalletAuth() {
               <h3>Supported Wallets</h3>
               <div className="wallet-list">
                 <div className="wallet-option">
-                  <div className="wallet-logo">🦊</div>
                   <div className="wallet-name">MetaMask</div>
                   <div className="wallet-status">Available</div>
                 </div>
                 <div className="wallet-option">
-                  <div className="wallet-logo">🔷</div>
                   <div className="wallet-name">Coinbase Wallet</div>
                   <div className="wallet-status">Available</div>
                 </div>
                 <div className="wallet-option">
-                  <div className="wallet-logo">🌈</div>
                   <div className="wallet-name">Rainbow</div>
                   <div className="wallet-status">Available</div>
                 </div>
                 <div className="wallet-option">
-                  <div className="wallet-logo">🔐</div>
                   <div className="wallet-name">WalletConnect</div>
                   <div className="wallet-status">Available</div>
                 </div>
@@ -222,9 +216,9 @@ function WalletAuth() {
                 <div className="detail-card">
                   <div className="detail-label">Assigned Role(s)</div>
                   <div className="detail-value">
-                    {currentUser.isAdmin && <span className="role-badge admin">👑 Chief Authority</span>}
-                    {currentUser.isRegistrar && !currentUser.isAdmin && <span className="role-badge registrar">📋 Land Registrar</span>}
-                    {!currentUser.isAdmin && !currentUser.isRegistrar && <span className="role-badge user">👤 Property Owner</span>}
+                    {currentUser.isAdmin && <span className="role-badge admin">Chief Authority</span>}
+                    {currentUser.isRegistrar && !currentUser.isAdmin && <span className="role-badge registrar">Land Registrar</span>}
+                    {!currentUser.isAdmin && !currentUser.isRegistrar && <span className="role-badge user">Property Owner</span>}
                   </div>
                 </div>
                 <div className="detail-card">

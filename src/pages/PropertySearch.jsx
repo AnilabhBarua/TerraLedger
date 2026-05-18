@@ -98,7 +98,6 @@ function PropertySearch() {
     <div className="search-page">
       <div className="search-container">
         <div className="search-header">
-          <div className="header-icon">🔍</div>
           <h1>Property Search</h1>
           <p>Search and verify any registered property on the blockchain</p>
         </div>
@@ -144,14 +143,12 @@ function PropertySearch() {
             min={searchType === 'id' ? '1' : undefined}
           />
           <button onClick={handleSearch} disabled={loading}>
-            <span>🔍</span>
             {loading ? 'Loading...' : 'Search'}
           </button>
         </div>
 
         {error && (
           <div className="error-message-box">
-            <span className="error-icon">⚠️</span>
             <span>{error}</span>
           </div>
         )}
@@ -192,7 +189,7 @@ function PropertySearch() {
         {selectedProperty && (
           <div className="property-details-modal">
             <div className="modal-content">
-              <button className="close-btn" onClick={() => setSelectedProperty(null)}>×</button>
+              <button className="close-btn" onClick={() => setSelectedProperty(null)}>x</button>
 
               <div className="modal-header">
                 <h2>Property Details</h2>
