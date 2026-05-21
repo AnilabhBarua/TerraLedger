@@ -22,8 +22,8 @@
 # Environment variables
 .env
 
-#Tracking Files
+# Tracking Files
 task.md
 implementation_plan.md
 walkthrough.md
-
+/project-docs/
