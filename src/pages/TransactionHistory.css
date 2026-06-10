@@ -2,6 +2,100 @@
   max-width: 1180px;
 }
 
+/* ── Analytics Dashboard ─────────────────────────────────────────────── */
+
+.th-dashboard {
+  background: rgba(8, 10, 18, 0.45);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  padding: 24px;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.35);
+}
+
+.th-simulated-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  padding: 7px 14px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #f59e0b;
+  letter-spacing: 0.04em;
+}
+.th-simulated-sub {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.th-charts {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+  margin-top: 20px;
+}
+.th-chart-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 14px 16px 10px;
+}
+.th-chart-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+.th-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.th-dot--teal  { background: #00e5cc; box-shadow: 0 0 6px #00e5cc; }
+.th-dot--amber { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; }
+
+.th-tooltip {
+  background: rgba(10,12,22,0.96);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.th-tooltip__label { color: #64748b; margin-bottom: 4px; font-size: 11px; }
+.th-tooltip__row { display: flex; gap: 8px; justify-content: space-between; }
+
+/* tx-icon type variants */
+.tx-icon--reg { background: rgba(0, 229, 204, 0.12); color: #00e5cc; }
+.tx-icon--trf { background: rgba(168, 85, 247, 0.12); color: #a855f7; }
+
+/* Empty state */
+.th-empty {
+  padding: 48px 24px;
+  text-align: center;
+  border: 1px dashed rgba(255,255,255,0.1);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.02);
+}
+.th-empty__icon  { font-size: 32px; margin-bottom: 12px; }
+.th-empty__title { font-size: 16px; font-weight: 700; color: var(--text, #e2e8f0); margin-bottom: 8px; }
+.th-empty__sub   { font-size: 13px; color: #64748b; }
+
+@media (max-width: 860px) {
+  .th-charts { grid-template-columns: 1fr; }
+}
+
+
 .stats-overview {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));

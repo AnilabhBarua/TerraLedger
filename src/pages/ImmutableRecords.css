@@ -2,6 +2,129 @@
   max-width: 1180px;
 }
 
+/* ── Analytics Dashboard ─────────────────────────────────────────────── */
+
+.ir-dashboard {
+  background: rgba(8, 10, 18, 0.45);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 18px;
+  padding: 24px;
+  margin-bottom: 28px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.35);
+}
+
+.ir-simulated-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 8px;
+  padding: 7px 14px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #f59e0b;
+  letter-spacing: 0.04em;
+}
+.ir-simulated-sub {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.ir-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.ir-kpi {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.ir-kpi__icon {
+  font-size: 22px;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ir-kpi__icon--teal   { background: rgba(0, 229, 204, 0.12); }
+.ir-kpi__icon--purple { background: rgba(168, 85, 247, 0.12); }
+.ir-kpi__icon--amber  { background: rgba(245, 158, 11, 0.12); }
+.ir-kpi__icon--blue   { background: rgba(96, 165, 250, 0.12); }
+.ir-kpi__val {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text, #e2e8f0);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ir-kpi__label {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.ir-charts {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+}
+.ir-chart-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 14px 16px 10px;
+}
+.ir-chart-card__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
+.ir-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ir-dot--teal   { background: #00e5cc; box-shadow: 0 0 6px #00e5cc; }
+.ir-dot--purple { background: #a855f7; box-shadow: 0 0 6px #a855f7; }
+
+.ir-tooltip {
+  background: rgba(10,12,22,0.96);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+}
+.ir-tooltip__label { color: #64748b; margin-bottom: 4px; font-size: 11px; }
+.ir-tooltip__row { display: flex; gap: 8px; justify-content: space-between; }
+
+@media (max-width: 900px) {
+  .ir-charts { grid-template-columns: 1fr; }
+  .ir-kpis   { grid-template-columns: repeat(2, 1fr); }
+}
+
+
 .blockchain-visual {
   margin-bottom: 28px;
   overflow-x: auto;
