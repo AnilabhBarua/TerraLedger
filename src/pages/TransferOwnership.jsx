@@ -132,7 +132,7 @@ function TransferOwnership() {
 
       const tx = await contract.requestTransfer(property.propertyId, newOwner);
       const miningStart = performance.now();
-      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0);
+      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0, { hash: tx.hash });
       const receipt = await tx.wait();
       const latencySec = ((performance.now() - miningStart) / 1000).toFixed(2);
 
@@ -146,7 +146,11 @@ function TransferOwnership() {
         gasUsed: Number(receipt.gasUsed).toLocaleString(),
         latency: latencySec,
       });
-      updateToast(toastId, '\u2705 Transfer Requested!', `Pending Registrar approval \u2022 Gas: ${Number(receipt.gasUsed).toLocaleString()} \u2022 ${latencySec}s`, 'success', 7000);
+      updateToast(toastId, '✅ Transfer Requested!', `Pending Registrar approval • ${latencySec}s`, 'success', 8000, {
+        hash: tx.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: Number(receipt.gasUsed).toLocaleString(),
+      });
       setSuccess(true);
       fetchProps();
     } catch (error) {
@@ -174,7 +178,7 @@ function TransferOwnership() {
 
       const tx = await contract.approveTransfer(property.propertyId);
       const miningStart = performance.now();
-      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0);
+      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0, { hash: tx.hash });
       const receipt = await tx.wait();
       const latencySec = ((performance.now() - miningStart) / 1000).toFixed(2);
 
@@ -188,7 +192,11 @@ function TransferOwnership() {
         gasUsed: Number(receipt.gasUsed).toLocaleString(),
         latency: latencySec,
       });
-      updateToast(toastId, '\u2705 Transfer Approved!', `Ownership transferred \u2022 Gas: ${Number(receipt.gasUsed).toLocaleString()} \u2022 ${latencySec}s`, 'success', 7000);
+      updateToast(toastId, '✅ Transfer Approved!', `Ownership transferred • ${latencySec}s`, 'success', 8000, {
+        hash: tx.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: Number(receipt.gasUsed).toLocaleString(),
+      });
       setSuccess(true);
       fetchProps();
     } catch (error) {
@@ -216,7 +224,7 @@ function TransferOwnership() {
 
       const tx = await contract.cancelTransfer(property.propertyId);
       const miningStart = performance.now();
-      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0);
+      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0, { hash: tx.hash });
       const receipt = await tx.wait();
       const latencySec = ((performance.now() - miningStart) / 1000).toFixed(2);
 
@@ -230,7 +238,11 @@ function TransferOwnership() {
         gasUsed: Number(receipt.gasUsed).toLocaleString(),
         latency: latencySec,
       });
-      updateToast(toastId, '\u2705 Transfer Cancelled', `Request withdrawn \u2022 Gas: ${Number(receipt.gasUsed).toLocaleString()} \u2022 ${latencySec}s`, 'success', 7000);
+      updateToast(toastId, '✅ Transfer Cancelled', `Request withdrawn • ${latencySec}s`, 'success', 8000, {
+        hash: tx.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: Number(receipt.gasUsed).toLocaleString(),
+      });
       setSuccess(true);
       fetchProps();
     } catch (error) {

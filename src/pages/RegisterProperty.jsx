@@ -84,7 +84,7 @@ function RegisterProperty() {
       const tx = await contract.registerProperty(ownerAddress, location, area, propertyType, documentHash);
 
       const miningStart = performance.now();
-      updateToast(toastId, 'Transaction sent', 'Waiting for block confirmation.', 'pending', 0);
+      updateToast(toastId, 'Transaction sent', 'Waiting for block confirmation.', 'pending', 0, { hash: tx.hash });
       const receipt = await tx.wait();
       const latencySec = ((performance.now() - miningStart) / 1000).toFixed(2);
 
@@ -99,7 +99,11 @@ function RegisterProperty() {
         documentUrl: documentHash ? `https://gateway.pinata.cloud/ipfs/${documentHash}` : null
       });
 
-      updateToast(toastId, 'Property registered', `Block #${receipt.blockNumber} | Gas: ${Number(receipt.gasUsed).toLocaleString()} | ${latencySec}s`, 'success', 7000);
+      updateToast(toastId, 'Property registered', `Block #${receipt.blockNumber} · Gas: ${Number(receipt.gasUsed).toLocaleString()} · ${latencySec}s`, 'success', 8000, {
+        hash: tx.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: Number(receipt.gasUsed).toLocaleString(),
+      });
       setSuccess(true);
     } catch (error) {
       const msg = error.reason || error.message || 'Transaction failed.';

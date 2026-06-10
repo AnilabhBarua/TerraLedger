@@ -1,0 +1,166 @@
+/* ────────────────────────────────────────────────────────────────────────────
+   Skeleton Loading Styles
+   Shimmer animation that adapts to the app's light / dark theme.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --sk-base: rgba(120, 120, 140, 0.12);
+  --sk-shine: rgba(200, 200, 220, 0.28);
+  --sk-card-bg: rgba(255, 255, 255, 0.04);
+  --sk-card-border: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='light'] {
+  --sk-base: rgba(0, 0, 0, 0.07);
+  --sk-shine: rgba(255, 255, 255, 0.7);
+  --sk-card-bg: rgba(0, 0, 0, 0.02);
+  --sk-card-border: rgba(0, 0, 0, 0.07);
+}
+
+/* ── Core shimmer block ─────────────────────────────────────────────────── */
+
+.skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--sk-base) 25%,
+    var(--sk-shine) 50%,
+    var(--sk-base) 75%
+  );
+  background-size: 400% 100%;
+  animation: sk-shimmer 1.6s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes sk-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* ── SkeletonText group ─────────────────────────────────────────────────── */
+
+.skeleton-text-group {
+  width: 100%;
+}
+
+/* ── SkeletonStatCard ───────────────────────────────────────────────────── */
+
+.skeleton-stat-card {
+  padding: 1.25rem 1.5rem;
+  background: var(--sk-card-bg);
+  border: 1px solid var(--sk-card-border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+/* ── SkeletonCard (property / record card) ──────────────────────────────── */
+
+.skeleton-card {
+  background: var(--sk-card-bg);
+  border: 1px solid var(--sk-card-border);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.skeleton-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--sk-card-border);
+}
+
+.skeleton-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.skeleton-card__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skeleton-card__footer {
+  padding-top: 1rem;
+  border-top: 1px solid var(--sk-card-border);
+}
+
+/* ── SkeletonTableRow ───────────────────────────────────────────────────── */
+
+.skeleton-table-row td {
+  border: none;
+}
+
+/* ── SkeletonTransactionRow ─────────────────────────────────────────────── */
+
+.skeleton-tx-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  background: var(--sk-card-bg);
+  border: 1px solid var(--sk-card-border);
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-tx-row__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-tx-row__end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+/* ── SkeletonPropertyCard ───────────────────────────────────────────────── */
+
+.skeleton-prop-card {
+  background: var(--sk-card-bg);
+  border: 1px solid var(--sk-card-border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton-prop-card__top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.2rem;
+}
+
+.skeleton-prop-card__bottom {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+/* ── Quick-search button skeletons ──────────────────────────────────────── */
+
+.skeleton-quick-btn {
+  height: 2.25rem;
+  border-radius: 24px;
+  flex: 1;
+  min-width: 7rem;
+  max-width: 11rem;
+}
+
+.skeleton-quick-btns {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}

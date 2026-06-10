@@ -112,7 +112,7 @@ function RoleManager() {
         ? await contract.addRegistrar(addr)
         : await contract.removeRegistrar(addr);
 
-      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0);
+      updateToast(toastId, 'Transaction Sent', 'Waiting for block confirmation…', 'pending', 0, { hash: tx.hash });
       const t0 = performance.now();
       await tx.wait();
       const latency = ((performance.now() - t0) / 1000).toFixed(2);
@@ -122,7 +122,8 @@ function RoleManager() {
         `✅ Role ${action === 'add' ? 'Granted' : 'Revoked'}`,
         `${action === 'add' ? 'Granted to' : 'Revoked from'} ${addr.slice(0, 16)}… • ${latency}s`,
         'success',
-        6000
+        8000,
+        { hash: tx.hash }
       );
       setAddress('');
       await fetchDashboardData(); // refresh the table

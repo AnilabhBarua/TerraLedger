@@ -24,11 +24,12 @@ export function ToastProvider({ children }) {
    * @param {string} message - Detail line (optional)
    * @param {'pending'|'success'|'error'|'info'} status
    * @param {number}  duration - Auto-dismiss ms (0 = sticky until dismiss)
+   * @param {object|null} txInfo - Optional { hash, blockNumber, gasUsed } for rich tx panel
    * @returns {number} id — use to update the toast later with updateToast()
    */
-  const addToast = useCallback((title, message = '', status = 'info', duration = 4000) => {
+  const addToast = useCallback((title, message = '', status = 'info', duration = 4000, txInfo = null) => {
     const id = ++_toastId;
-    setToasts(prev => [...prev, { id, title, message, status, exiting: false }]);
+    setToasts(prev => [...prev, { id, title, message, status, txInfo, exiting: false }]);
 
     if (duration > 0) {
       timers.current[id] = setTimeout(() => dismiss(id), duration);
@@ -38,9 +39,15 @@ export function ToastProvider({ children }) {
 
   /**
    * updateToast: mutate an existing toast in place (e.g. pending → success).
+   * @param {number} id
+   * @param {string} title
+   * @param {string} message
+   * @param {'pending'|'success'|'error'|'info'} status
+   * @param {number} duration
+   * @param {object|null} txInfo - Optional { hash, blockNumber, gasUsed }
    */
-  const updateToast = useCallback((id, title, message = '', status = 'info', duration = 4000) => {
-    setToasts(prev => prev.map(t => t.id === id ? { ...t, title, message, status } : t));
+  const updateToast = useCallback((id, title, message = '', status = 'info', duration = 4000, txInfo = null) => {
+    setToasts(prev => prev.map(t => t.id === id ? { ...t, title, message, status, txInfo } : t));
 
     // Reset auto-dismiss timer
     if (timers.current[id]) clearTimeout(timers.current[id]);
@@ -112,6 +119,46 @@ function ToastItem({ toast, onDismiss }) {
       <div className="toast__body">
         <p className="toast__title">{toast.title}</p>
         {toast.message && <p className="toast__message">{toast.message}</p>}
+
+        {/* ── Rich Transaction Info Panel ── */}
+        {toast.txInfo && (
+          <div className="toast__tx-panel">
+            {toast.txInfo.hash && (
+              <div className="toast__tx-row">
+                <span className="toast__tx-key">Tx Hash</span>
+                <code className="toast__tx-val toast__tx-hash">
+                  {toast.txInfo.hash.slice(0, 12)}…{toast.txInfo.hash.slice(-8)}
+                </code>
+              </div>
+            )}
+            {toast.txInfo.blockNumber && (
+              <div className="toast__tx-row">
+                <span className="toast__tx-key">Block</span>
+                <span className="toast__tx-val">{Number(toast.txInfo.blockNumber).toLocaleString()}</span>
+              </div>
+            )}
+            {toast.txInfo.gasUsed && (
+              <div className="toast__tx-row">
+                <span className="toast__tx-key">Gas Used</span>
+                <span className="toast__tx-val">{toast.txInfo.gasUsed}</span>
+              </div>
+            )}
+            {toast.status === 'pending' && !toast.txInfo.blockNumber && (
+              <div className="toast__tx-waiting">
+                <span className="toast__tx-waiting-dot" />
+                <span>Waiting for block confirmation…</span>
+              </div>
+            )}
+            {toast.status === 'success' && toast.txInfo.blockNumber && (
+              <div className="toast__tx-confirmed">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span>Transaction confirmed on-chain</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <button className="toast__close" onClick={onDismiss} aria-label="Dismiss">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">

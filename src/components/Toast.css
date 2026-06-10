@@ -123,3 +123,95 @@
     width: auto;
   }
 }
+
+/* ── Rich Transaction Info Panel ─────────────────────────────────────────── */
+
+.toast__tx-panel {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: var(--surface-muted, rgba(0,0,0,0.08));
+  border: 1px solid var(--border, rgba(0,0,0,0.1));
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  animation: toast-panel-in 0.2s ease;
+}
+
+@keyframes toast-panel-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.toast__tx-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.toast__tx-key {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted, #888);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.toast__tx-val {
+  font-size: 11px;
+  color: var(--text, #1a1a1a);
+  font-weight: 500;
+  text-align: right;
+}
+
+.toast__tx-hash {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  font-size: 10.5px;
+  background: rgba(0,0,0,0.05);
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+/* Waiting indicator */
+.toast__tx-waiting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  font-size: 10.5px;
+  color: var(--primary, #4f6ef7);
+  font-style: italic;
+}
+
+.toast__tx-waiting-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary, #4f6ef7);
+  flex-shrink: 0;
+  animation: toast-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes toast-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.2; }
+}
+
+/* Confirmed indicator */
+.toast__tx-confirmed {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--accent, #10b981);
+}
+
+.toast__tx-confirmed svg {
+  color: var(--accent, #10b981);
+  flex-shrink: 0;
+}
