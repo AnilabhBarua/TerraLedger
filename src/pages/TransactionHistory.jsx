@@ -26,20 +26,7 @@ function DarkTooltip({ active, payload, label, unit = '' }) {
   );
 }
 
-// Generate simulated transaction data for non-metamask users
-function getSimulatedChartData() {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const activityData = days.map(d => ({
-    day: d,
-    Registrations: Math.floor(2 + Math.random() * 5),
-    Transfers: Math.floor(1 + Math.random() * 3),
-  }));
-  const gasData = days.map((d, i) => ({
-    day: d,
-    gas: Math.floor(180000 + Math.random() * 80000 + i * 5000),
-  }));
-  return { activityData, gasData };
-}
+
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
@@ -50,8 +37,7 @@ function TransactionHistory() {
   const [registrationsCount, setRegistrationsCount] = useState(0);
   const [totalGasUsed, setTotalGasUsed] = useState(BigInt(0));
   const [loading, setLoading] = useState(true);
-  const [alchemyError, setAlchemyError] = useState(false);
-  const [isSimulated, setIsSimulated] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -67,47 +53,35 @@ function TransactionHistory() {
           logsTrans = await fetchEventsChunked(contract, contract.filters.OwnershipTransferred(), DEPLOY_BLOCK, provider2);
         } catch (logErr) {
           console.warn('Chunked event fetch failed.', logErr);
-          setAlchemyError(true);
-          setIsSimulated(true);
+          setFetchError(true);
           setLoading(false);
           return;
         }
 
-        const regs = await Promise.all(logsReg.map(async log => {
-          const block = await provider.getBlock(log.blockHash);
-          const tx = await provider.getTransaction(log.transactionHash);
-          const receipt = await provider.getTransactionReceipt(log.transactionHash);
-          const gasCostWei = receipt.gasUsed * tx.gasPrice;
-          return {
-            id: log.transactionHash + '-' + log.index,
-            type: 'Registration',
-            propertyId: Number(log.args[0]),
-            from: 'System',
-            to: log.args[1],
-            toName: 'Contract Deployer / Admin',
-            transactionHash: log.transactionHash,
-            timestamp: new Date(block.timestamp * 1000).toISOString(),
-            blockNumber: log.blockNumber,
-            status: 'confirmed',
-            gasUsed: receipt.gasUsed.toString(),
-            gasPrice: ethers.formatUnits(tx.gasPrice, 'gwei') + ' Gwei',
-            gasCostEth: ethers.formatEther(gasCostWei),
-            latency: null,
-          };
-        }));
+        // Deduplicate block fetches — cache promises by blockHash
+        const blockCache = new Map();
+        const getBlockCached = (blockHash) => {
+          if (!blockCache.has(blockHash)) {
+            blockCache.set(blockHash, provider.getBlock(blockHash));
+          }
+          return blockCache.get(blockHash);
+        };
 
-        const trans = await Promise.all(logsTrans.map(async log => {
-          const block = await provider.getBlock(log.blockHash);
-          const tx = await provider.getTransaction(log.transactionHash);
-          const receipt = await provider.getTransactionReceipt(log.transactionHash);
+        // For each log: fire getBlock (cached), getTransaction, getTransactionReceipt in parallel
+        const mapLog = async (log, type) => {
+          const [block, tx, receipt] = await Promise.all([
+            getBlockCached(log.blockHash),
+            provider.getTransaction(log.transactionHash),
+            provider.getTransactionReceipt(log.transactionHash),
+          ]);
           const gasCostWei = receipt.gasUsed * tx.gasPrice;
           return {
             id: log.transactionHash + '-' + log.index,
-            type: 'Transfer',
+            type,
             propertyId: Number(log.args[0]),
-            from: log.args[1],
-            to: log.args[2],
-            toName: 'New Owner',
+            from: type === 'Registration' ? 'System' : log.args[1],
+            to: type === 'Registration' ? log.args[1] : log.args[2],
+            toName: type === 'Registration' ? 'Contract Deployer / Admin' : 'New Owner',
             transactionHash: log.transactionHash,
             timestamp: new Date(block.timestamp * 1000).toISOString(),
             blockNumber: log.blockNumber,
@@ -117,7 +91,13 @@ function TransactionHistory() {
             gasCostEth: ethers.formatEther(gasCostWei),
             latency: null,
           };
-        }));
+        };
+
+        // Process both event sets fully in parallel
+        const [regs, trans] = await Promise.all([
+          Promise.all(logsReg.map(log => mapLog(log, 'Registration'))),
+          Promise.all(logsTrans.map(log => mapLog(log, 'Transfer'))),
+        ]);
 
         const combined = [...regs, ...trans].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         const totalGas = combined.reduce((sum, t) => sum + BigInt(t.gasUsed || 0), BigInt(0));
@@ -128,7 +108,7 @@ function TransactionHistory() {
         setTotalGasUsed(totalGas);
       } catch (err) {
         console.error('Error fetching transactions:', err);
-        setIsSimulated(true);
+        setFetchError(true);
       } finally {
         setLoading(false);
       }
@@ -136,15 +116,9 @@ function TransactionHistory() {
     fetchEvents();
   }, []);
 
-  const sortedTransactions = filter === 'all'
-    ? allTransactions
-    : filter === 'transfer'
-    ? allTransactions.filter(tx => tx.type === 'Transfer')
-    : allTransactions.filter(tx => tx.type === 'Registration');
-
   // ── Chart data ─────────────────────────────────────────────────────────────
   const { activityData, gasData } = useMemo(() => {
-    if (isSimulated || allTransactions.length === 0) return getSimulatedChartData();
+    if (allTransactions.length === 0) return { activityData: [], gasData: [] };
 
     // Build activity by day of week from real transactions
     const dayMap = { 0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat' };
@@ -164,17 +138,21 @@ function TransactionHistory() {
     const activityData = days.map(d => ({ day: d, ...(activity[d] || { Registrations: 0, Transfers: 0 }) }));
     const gasDataArr = days.map(d => ({ day: d, gas: gasMap[d] || 0 }));
     return { activityData, gasData: gasDataArr };
-  }, [allTransactions, isSimulated]);
+  }, [allTransactions]);
 
-  const displayTotalTx = isSimulated ? '47' : allTransactions.length;
-  const displayTransfers = isSimulated ? '18' : transfersCount;
-  const displayRegs = isSimulated ? '29' : registrationsCount;
-  const displayGas = isSimulated ? '12.4K' : (
-    allTransactions.length > 0 ? `${(Number(totalGasUsed) / 1000).toFixed(1)}K` : '—'
-  );
-  const displayAvgGas = isSimulated ? '263K' : (
-    allTransactions.length > 0 ? `${Math.round(Number(totalGasUsed) / allTransactions.length).toLocaleString()}` : '—'
-  );
+  const sortedTransactions = filter === 'all'
+    ? allTransactions
+    : filter === 'transfer'
+    ? allTransactions.filter(tx => tx.type === 'Transfer')
+    : allTransactions.filter(tx => tx.type === 'Registration');
+
+  const displayTotalTx = allTransactions.length;
+  const displayTransfers = transfersCount;
+  const displayRegs = registrationsCount;
+  const displayGas = allTransactions.length > 0 ? `${(Number(totalGasUsed) / 1000).toFixed(1)}K` : '—';
+  const displayAvgGas = allTransactions.length > 0
+    ? `${Math.round(Number(totalGasUsed) / allTransactions.length).toLocaleString()}`
+    : '—';
 
   return (
     <div className="transactions-page">
@@ -186,10 +164,10 @@ function TransactionHistory() {
 
         {/* ── Analytics Section ──────────────────────────────────────────── */}
         <div className="th-dashboard">
-          {isSimulated && (
-            <div className="th-simulated-badge">
-              <span>⚡ Simulated Network View</span>
-              <span className="th-simulated-sub">Connect a wallet for live transaction data</span>
+          {fetchError && (
+            <div className="th-simulated-badge" style={{ background: 'rgba(239,68,68,0.15)', borderColor: 'rgba(239,68,68,0.4)' }}>
+              <span>⚠ Could not reach blockchain</span>
+              <span className="th-simulated-sub">Check your network connection and try again</span>
             </div>
           )}
 
@@ -279,10 +257,9 @@ function TransactionHistory() {
         </div>
 
         {/* ── Filters & List ────────────────────────────────────────────── */}
-        {alchemyError && (
+        {fetchError && (
           <div className="error-message-box" style={{ margin: '0 0 20px 0' }}>
-            <strong>Limited View:</strong> Connect a Web3 wallet (MetaMask) to view complete live transaction history.
-            Displaying simulated data for demonstration purposes.
+            <strong>⚠ Blockchain Unavailable:</strong> Could not fetch transactions from the network. Please check your connection or try again later.
           </div>
         )}
 
@@ -300,9 +277,9 @@ function TransactionHistory() {
               <div className="th-empty__icon">⛓</div>
               <div className="th-empty__title">No transactions to display</div>
               <div className="th-empty__sub">
-                {isSimulated
-                  ? 'Connect a wallet to load live blockchain transactions.'
-                  : `Switch the filter or complete a blockchain transaction first.`}
+                {fetchError
+                  ? 'Could not load transactions. Please check your network connection.'
+                  : 'Switch the filter or complete a blockchain transaction first.'}
               </div>
             </div>
           ) : sortedTransactions.map((tx, index) => (
@@ -382,7 +359,7 @@ function TransactionHistory() {
 
         <div className="real-time-indicator">
           <div className="pulse-dot" />
-          <span>{isSimulated ? 'Simulated View — Connect Wallet for Live Updates' : 'Real-time Updates Active'}</span>
+          <span>Real-time Updates Active</span>
         </div>
       </div>
     </div>

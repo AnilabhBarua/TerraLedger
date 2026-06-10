@@ -2,7 +2,7 @@
 
 .at-overlay {
   position: fixed;
-  bottom: 90px;          /* sits above LiveEventsPanel */
+  bottom: 24px;          /* standard bottom offset */
   right: 24px;
   width: 700px;
   max-width: calc(100vw - 48px);

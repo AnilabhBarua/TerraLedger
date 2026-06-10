@@ -12,7 +12,6 @@ import WalletAuth from './pages/WalletAuth';
 import RoleManager from './pages/RoleManager';
 import { ToastProvider } from './components/Toast';
 import { ThemeProvider } from './context/ThemeContext';
-import LiveEventsPanel from './components/LiveEventsPanel';
 import AdminTelemetry from './components/AdminTelemetry';
 import './App.css';
 
@@ -56,7 +55,6 @@ function App() {
               <Route path="/wallet" element={<WalletAuth />} />
               <Route path="/roles" element={<RoleManager />} />
             </Routes>
-            <LiveEventsPanel />
             <AdminTelemetry />
           </div>
         </Router>

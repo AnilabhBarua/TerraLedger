@@ -33,30 +33,15 @@ function DarkTooltip({ active, payload, label, unit = '' }) {
   );
 }
 
-// Simulated data used when no live data is available (non-metamask / read-only fail)
-function getSimulatedData() {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-  const timelineData = months.map((m, i) => ({
-    period: m,
-    Registrations: Math.floor(8 + Math.random() * 12 + i * 3),
-    Transfers: Math.floor(3 + Math.random() * 7 + i),
-  }));
-  const typeData = [
-    { name: 'Residential', value: 48 },
-    { name: 'Commercial', value: 22 },
-    { name: 'Agricultural', value: 18 },
-    { name: 'Industrial', value: 12 },
-  ];
-  return { timelineData, typeData };
-}
+
 
 // ─── Main Component ────────────────────────────────────────────────────────────
 
 function ImmutableRecords() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [verifyState, setVerifyState] = useState({});
-  const [isSimulated, setIsSimulated] = useState(false);
 
   const updateVerify = (propertyId, patch) => {
     setVerifyState(prev => ({ ...prev, [propertyId]: { ...(prev[propertyId] || {}), ...patch } }));
@@ -101,11 +86,21 @@ function ImmutableRecords() {
           console.warn('Chunked event fetch failed.', logErr);
         }
 
+        // Deduplicate block fetches — cache promises by blockHash so blocks
+        // shared across multiple properties are only fetched once over the wire.
+        const blockCache = new Map();
+        const getBlockCached = (blockHash) => {
+          if (!blockCache.has(blockHash)) {
+            blockCache.set(blockHash, provider.getBlock(blockHash));
+          }
+          return blockCache.get(blockHash);
+        };
+
         const merged = await Promise.all(props.map(async prop => {
           const log = logsRegistered.find(l => Number(l.args[0]) === prop.propertyId);
           let timestamp = new Date();
           if (log) {
-            const block = await provider.getBlock(log.blockHash);
+            const block = await getBlockCached(log.blockHash);
             timestamp = new Date(block.timestamp * 1000);
           }
           return {
@@ -117,10 +112,9 @@ function ImmutableRecords() {
         }));
 
         setRecords(merged);
-        setIsSimulated(false);
       } catch (err) {
         console.error(err);
-        setIsSimulated(true);
+        setFetchError(true);
       } finally {
         setLoading(false);
       }
@@ -130,7 +124,7 @@ function ImmutableRecords() {
 
   // ── Derived chart data ─────────────────────────────────────────────────────
   const { timelineData, typeData } = useMemo(() => {
-    if (isSimulated || records.length === 0) return getSimulatedData();
+    if (records.length === 0) return { timelineData: [], typeData: [] };
 
     // Group registrations by month
     const byMonth = {};
@@ -148,13 +142,11 @@ function ImmutableRecords() {
     const typeData = Object.entries(byType).map(([name, value]) => ({ name, value }));
 
     return { timelineData, typeData };
-  }, [records, isSimulated]);
+  }, [records]);
 
-  const totalRegistrations = isSimulated
-    ? timelineData.reduce((s, d) => s + d.Registrations, 0)
-    : records.length;
-  const uniqueOwners = isSimulated ? 34 : new Set(records.map(r => r.owner)).size;
-  const latestBlock = isSimulated ? 'N/A' : (records[records.length - 1]?.blockNumber || '—');
+  const totalRegistrations = records.length;
+  const uniqueOwners = new Set(records.map(r => r.owner)).size;
+  const latestBlock = records[records.length - 1]?.blockNumber || '—';
 
   return (
     <div className="records-page">
@@ -166,10 +158,10 @@ function ImmutableRecords() {
 
         {/* ── Analytics Dashboard ─────────────────────────────────────────── */}
         <div className="ir-dashboard">
-          {isSimulated && (
-            <div className="ir-simulated-badge">
-              <span>⚡ Simulated Network View</span>
-              <span className="ir-simulated-sub">Connect a wallet to see live data</span>
+          {fetchError && (
+            <div className="ir-simulated-badge" style={{ background: 'rgba(239,68,68,0.15)', borderColor: 'rgba(239,68,68,0.4)' }}>
+              <span>⚠ Could not reach blockchain</span>
+              <span className="ir-simulated-sub">Check your network connection and try again</span>
             </div>
           )}
 
