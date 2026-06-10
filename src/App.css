@@ -131,6 +131,11 @@
   letter-spacing: 0;
 }
 
+button {
+  letter-spacing: 0;
+  touch-action: manipulation; /* removes 300ms tap delay on mobile */
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -160,5 +165,42 @@
   .wallet-page,
   .role-manager-page {
     padding: 16px 10px 40px;
+  }
+
+  /* Ensure containers never overflow their parent */
+  .register-container,
+  .transfer-container,
+  .records-container,
+  .search-container,
+  .transactions-container,
+  .wallet-container,
+  .role-manager-container {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Tighten header margins on phones */
+  .register-header,
+  .transfer-header,
+  .records-header,
+  .search-header,
+  .transactions-header,
+  .wallet-header {
+    margin-bottom: 20px;
+  }
+}
+
+/* Prevent content from disappearing at extremely narrow widths (Galaxy Fold, etc.) */
+@media (max-width: 320px) {
+  .app-shell,
+  .dashboard-container,
+  .register-page,
+  .transfer-page,
+  .records-page,
+  .search-page,
+  .transactions-page,
+  .wallet-page,
+  .role-manager-page {
+    padding: 12px 8px 32px;
   }
 }

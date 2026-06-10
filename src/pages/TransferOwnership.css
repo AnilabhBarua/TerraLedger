@@ -329,6 +329,10 @@
     grid-template-columns: 1fr;
   }
 
+  .input-group button {
+    width: 100%;
+  }
+
   .detail-row {
     grid-template-columns: 1fr;
     gap: 4px;
@@ -344,6 +348,10 @@
   .no-properties {
     padding: 18px;
   }
+
+  .transfer-header h1 {
+    font-size: clamp(24px, 7vw, 36px);
+  }
 }
 
 @media (max-width: 480px) {
@@ -354,4 +362,47 @@
   .step-label {
     font-size: 11px;
   }
+
+  .steps-indicator {
+    /* On very small phones compact the steps */
+    gap: 0;
+  }
+
+  .step {
+    min-width: 70px;
+  }
+
+  .step-connector {
+    min-width: 16px;
+    margin: 0 6px;
+  }
+
+  .step-content,
+  .current-property,
+  .transaction-details,
+  .no-properties,
+  .security-notice {
+    padding: 14px;
+  }
+
+  .back-button,
+  .submit-button,
+  .reset-button {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .property-item {
+    padding: 14px;
+  }
+
+  .property-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .step-content h2 {
+    font-size: 20px;
+  }
 }
+

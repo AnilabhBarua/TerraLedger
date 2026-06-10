@@ -124,6 +124,59 @@
   .ir-kpis   { grid-template-columns: repeat(2, 1fr); }
 }
 
+@media (max-width: 600px) {
+  .ir-dashboard {
+    padding: 16px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+  }
+
+  .ir-simulated-badge {
+    flex-wrap: wrap;
+    font-size: 11px;
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .ir-kpis {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .ir-kpi {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .ir-kpi__icon {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+
+  .ir-kpi__val {
+    font-size: 18px;
+  }
+
+  .ir-chart-card {
+    padding: 12px 12px 8px;
+  }
+}
+
+@media (max-width: 400px) {
+  .ir-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .ir-kpi {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
 
 .blockchain-visual {
   margin-bottom: 28px;
@@ -174,7 +227,7 @@
 
 .records-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(340px, 100%), 1fr));
   gap: 18px;
   margin-bottom: 34px;
 }
@@ -402,8 +455,50 @@
 
 @media (max-width: 620px) {
   .records-grid,
-  .info-grid,
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
   .verify-upload-row {
     grid-template-columns: 1fr;
+  }
+
+  .verify-btn {
+    width: 100%;
+  }
+
+  .immutability-info {
+    padding: 18px;
+  }
+
+  .immutability-info h2 {
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+
+  .record-header,
+  .record-footer {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 14px;
+  }
+
+  .record-body {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .blockchain-visual {
+    margin-bottom: 18px;
+  }
+
+  .block {
+    min-width: 150px;
+    padding: 12px;
+  }
+
+  .records-header h1 {
+    font-size: clamp(24px, 7vw, 36px);
   }
 }

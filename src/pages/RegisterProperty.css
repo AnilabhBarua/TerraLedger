@@ -143,6 +143,7 @@
   text-align: center;
   cursor: pointer;
   background: var(--surface-muted);
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .file-drop-zone:hover,
@@ -363,6 +364,25 @@
   .access-denied {
     padding: 18px;
   }
+
+  .register-header h1 {
+    font-size: clamp(24px, 7vw, 36px);
+  }
+
+  .file-drop-zone {
+    padding: 16px;
+  }
+
+  .file-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .remove-file {
+    align-self: stretch;
+    text-align: center;
+  }
 }
 
 @media (max-width: 480px) {
@@ -374,5 +394,28 @@
 
   .tab-switcher {
     grid-template-columns: 1fr;
+  }
+
+  .admin-badge {
+    font-size: 12px;
+    margin-top: 10px;
+  }
+
+  .success-panel,
+  .transaction-details,
+  .property-summary,
+  .admin-info {
+    padding: 14px;
+  }
+
+  .success-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+
+  .notice-box {
+    font-size: 13px;
+    padding: 12px;
   }
 }

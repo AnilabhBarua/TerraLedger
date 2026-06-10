@@ -149,3 +149,26 @@
     flex-direction: column;
   }
 }
+
+@media (max-width: 480px) {
+  .property-card {
+    padding: 16px;
+  }
+
+  .property-header {
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+  }
+
+  .property-header h3 {
+    font-size: 18px;
+  }
+
+  .transfer-section {
+    padding: 14px;
+  }
+
+  .owner-address {
+    font-size: 11px;
+  }
+}
